@@ -1,16 +1,13 @@
-import SqlJs, { Database } from "sql.js";
+import { Database } from "sql.js";
 import * as React from "react";
-import { MenuPages, Scaffold } from "../components/scaffold";
 import { createRoot } from "react-dom/client";
-import { AppStatus } from "../shared/appstatus";
 import { genenames, genepanels } from "../shared/sql";
 import { Routes } from "../shared/routes";
-import { ProgressBar } from "../components/progressbar";
-import { fetchWithProgress } from "../shared/api";
 import { Tabulator, FormatModule, SortModule } from "tabulator-tables";
 import "tabulator-tables/dist/css/tabulator.css";
 import "tabulator-tables/dist/css/tabulator_bootstrap5.css";
 import { DbContext, DbScaffold } from "../components/dbscaffold";
+import { Description } from "../components/description";
 
 function Table({
   genepanelRows,
@@ -36,7 +33,13 @@ function Table({
           formatter: "link",
           formatterParams: {
             labelField: "genepanelName",
-            url: (e) => Routes.Genepanel(e.getValue()),
+            url: (e) => {
+              const dRow = e.getRow().getData();
+              return Routes.Genepanel(
+                dRow.genepanelName,
+                dRow.genepanelVersion
+              );
+            },
           },
         },
         {
@@ -65,22 +68,18 @@ function Table({
 }
 
 function GeneInfo({ db, hgncId }: { db: Database; hgncId: string }) {
-  const [genenameEntry, setGenenameEntry] = React.useState<
-    genenames.GenenameEntry | undefined
-  >();
-  const [genepanelRows, setGenepanelRows] = React.useState<
-    genepanels.GenepanelEntry[] | undefined
-  >();
-
-  React.useEffect(() => {
+  const genenameEntry = React.useMemo(() => {
     // get genes by ID
     const genes = genenames.searchByHgncId(db, hgncId);
     // select first gene
     const gene = genes[0];
-    setGenenameEntry(gene);
+    return gene;
+  }, []);
+
+  const genepanelRows = React.useMemo(() => {
     const genepanelRows = genepanels.searchLatestById(db, hgncId);
-    setGenepanelRows(genepanelRows);
-  }, [hgncId]);
+    return genepanelRows;
+  }, []);
 
   if (genenameEntry === undefined) {
     return <>no gene found with HGNC ID "{hgncId}"</>;
@@ -88,30 +87,26 @@ function GeneInfo({ db, hgncId }: { db: Database; hgncId: string }) {
 
   return (
     <>
-      <div className="row mb-3">
-        <div className="col-sm-2 text-muted">Gene symbol</div>
-        <div className="col-sm-10">{genenameEntry.symbol}</div>
-      </div>
-      <div className="row mb-3">
-        <div className="col-sm-2 text-muted">HGNC ID</div>
-        <div className="col-sm-10">
-          {genenameEntry.hgncId}{" "}
-          <small className="text-muted">
-            (
-            <a
-              href={`https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/HGNC:${genenameEntry.hgncId}`}
-              target={"_blank"}
-            >
-              {"\u21AA"} genenames.org
-            </a>
-            )
-          </small>
-        </div>
-      </div>
-      <div className="row mb-3">
-        <div className="col-sm-2 text-muted">Name</div>
-        <div className="col-sm-10">{genenameEntry.name}</div>
-      </div>
+      <Description k="Gene symbol" v={genenameEntry.symbol} />
+      <Description
+        k="HGNC ID"
+        v={
+          <>
+            {genenameEntry.hgncId}{" "}
+            <small className="text-muted">
+              (
+              <a
+                href={`https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/HGNC:${genenameEntry.hgncId}`}
+                target={"_blank"}
+              >
+                {"\u21AA"} genenames.org
+              </a>
+              )
+            </small>
+          </>
+        }
+      />
+      <Description k="Name" v={genenameEntry.name} />
       <hr />
       <div className="my-2">
         <small className="text-muted">Gene Panels</small>
@@ -122,7 +117,7 @@ function GeneInfo({ db, hgncId }: { db: Database; hgncId: string }) {
 }
 
 function GeneApp(props: any) {
-  // get note id
+  // get gene id
   const urlParams = new URL(document.location.href).searchParams;
   const hgncId = urlParams.get("hgncId") || undefined;
 

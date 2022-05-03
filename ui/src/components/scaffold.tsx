@@ -16,9 +16,12 @@ export function Scaffold(props: {
   db: Database | undefined;
   currentPage?: MenuPages;
 }) {
-  const [versionEntry, setVersionEntry] = React.useState<
-    version.VersionEntry | undefined
-  >();
+  const versionEntry: version.VersionEntry | undefined = React.useMemo(() => {
+    if (!props.db) {
+      return undefined;
+    }
+    return version.getVersion(props.db);
+  }, [props.db]);
 
   const menuEntries: MenuEnties = {
     [MenuPages.searchGene]: {
@@ -28,14 +31,6 @@ export function Scaffold(props: {
       url: Routes.Home,
     },
   };
-
-  React.useEffect(() => {
-    if (!props.db) {
-      return;
-    }
-    const v = version.getVersion(props.db);
-    setVersionEntry(v);
-  }, [props.db]);
 
   const vchild =
     versionEntry !== undefined ? (
@@ -60,7 +55,7 @@ export function Scaffold(props: {
             <img width={56} height={56} src={require("../../img/logo.png")} />
             <strong className="ms-3">Gene Panel Overview</strong>
           </a>
-          <ul className="navbar-nav me-auto">
+          <ul className="navbar-nav me-lg-auto">
             {Object.entries(menuEntries).map(([k, v]) => (
               <li className="nav-item" key={k}>
                 <a

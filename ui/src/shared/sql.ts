@@ -133,4 +133,36 @@ export namespace genepanels {
     }
     return r;
   }
+
+  export interface Gene {
+    id: string;
+    symbol: string;
+  }
+
+  export function searchGenesByNameVersion(
+    db: Database,
+    name: string,
+    version: string
+  ): Gene[] | undefined {
+    const stmt = db.prepare(`
+      SELECT
+        g.id,
+        g2.symbol
+      FROM
+        genepanels g
+      LEFT OUTER JOIN genenames g2 ON
+        g.id = g2.hgnc_id
+      WHERE
+        g.genepanel_name = :name
+        AND genepanel_version = :version
+      `);
+    const p = { ":name": name, ":version": version };
+    stmt.bind(p);
+    const r: Gene[] = [];
+    while (stmt.step()) {
+      const row = stmt.getAsObject();
+      r.push(row as unknown as Gene);
+    }
+    return r;
+  }
 }

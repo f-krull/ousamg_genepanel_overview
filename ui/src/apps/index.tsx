@@ -1,13 +1,9 @@
-import SqlJs, { Database } from "sql.js";
+import { Database } from "sql.js";
 import * as React from "react";
-import { render } from "react-dom";
 import { MenuPages, Scaffold } from "../components/scaffold";
-import ReactDOM = require("react-dom");
 import { createRoot } from "react-dom/client";
-import { AppStatus } from "../shared/appstatus";
 import { genenames } from "../shared/sql";
 import { Routes } from "../shared/routes";
-import { fetchWithProgress } from "../shared/api";
 import { DbContext, DbScaffold } from "../components/dbscaffold";
 
 function ProgressBar({ progress }: { progress: number | undefined }) {
@@ -34,31 +30,33 @@ function SearchGene({
   onInput: (geneCandidates: genenames.GenenameEntry[]) => void;
 }) {
   return (
-    <div className="mb-3">
-      <label htmlFor="inpGenesymbol" className="form-label">
+    <div className="mb-3 row">
+      <label htmlFor="inpGenesymbol" className="col-sm-2 col-form-label">
         Gene symbol
       </label>
-      <input
-        type="text"
-        className="form-control"
-        id="inpGenesymbol"
-        placeholder="BRCA3"
-        list="inpGenesymbolOptions"
-        onInput={(e) => {
-          const q = e.currentTarget.value;
-          if (q.length < 2) {
-            onInput([]);
-            return;
-          }
-          const genes = genenames.searchByPrefix(db, q);
-          onInput(genes);
-        }}
-      />
-      {/* <datalist id="inpGenesymbolOptions">
+      <div className="col-sm-10">
+        <input
+          type="text"
+          className="form-control"
+          id="inpGenesymbol"
+          placeholder="BRCA3"
+          list="inpGenesymbolOptions"
+          onInput={(e) => {
+            const q = e.currentTarget.value;
+            if (q.length < 2) {
+              onInput([]);
+              return;
+            }
+            const genes = genenames.searchByPrefix(db, q);
+            onInput(genes);
+          }}
+        />
+        {/* <datalist id="inpGenesymbolOptions">
         {geneSymbols.map((o) => (
           <option key={o} value={o}></option>
         ))}
       </datalist> */}
+      </div>
     </div>
   );
 }
@@ -71,31 +69,30 @@ function SearchHgnc({
   onInput: (geneCandidates: genenames.GenenameEntry[]) => void;
 }) {
   return (
-    <div className="mb-3">
-      <label htmlFor="inpHgncId" className="form-label">
+    <div className="mb-3 row">
+      <label htmlFor="inpHgncId" className="col-sm-2 col-form-label">
         HGNC ID
       </label>
-      <input
-        type="number"
-        className="form-control"
-        id="inpHgncId"
-        placeholder="18617"
-        onInput={(e) => {
-          const q = e.currentTarget.value;
-          if (q.length == 0) {
-            onInput([]);
-            return;
-          }
-          const genes = genenames.searchByHgncId(db, q);
-          onInput(genes);
-        }}
-      />
+      <div className="col-sm-10">
+        <input
+          type="number"
+          className="form-control"
+          id="inpHgncId"
+          placeholder="18617"
+          onInput={(e) => {
+            const q = e.currentTarget.value;
+            if (q.length == 0) {
+              onInput([]);
+              return;
+            }
+            const genes = genenames.searchByHgncId(db, q);
+            onInput(genes);
+          }}
+        />
+      </div>
     </div>
   );
 }
-
-const getGeneUrl = (hgncId: string) => `${Routes.Gene}?hgncId=${hgncId}`;
-
 function HomeApp(props: any) {
   const [geneCandidates, setGeneCandidates] = React.useState<
     genenames.GenenameEntry[]
@@ -131,7 +128,7 @@ function HomeApp(props: any) {
               </thead>
               <tbody>
                 {geneCandidates.map((c) => {
-                  const url = getGeneUrl(c.hgncId);
+                  const url = Routes.Gene(c.hgncId);
                   return (
                     <tr
                       className="link-primary"
@@ -155,7 +152,9 @@ function HomeApp(props: any) {
                   role="button"
                   className="btn btn-primary"
                   onClick={() =>
-                    window.location.assign(getGeneUrl(geneCandidates[0].hgncId))
+                    window.location.assign(
+                      Routes.Gene(geneCandidates[0].hgncId)
+                    )
                   }
                 >
                   Select gene
