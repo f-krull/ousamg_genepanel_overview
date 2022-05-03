@@ -1,0 +1,10 @@
+{
+  "recommendations": [
+    "dbaeumer.vscode-eslint", // ESLint
+    "esbenp.prettier-vscode", // Prettier code formatter
+    "bierner.color-info", // JSX and CSS color information
+    "visualstudioexptteam.vscodeintellicode", // AI-assisted development
+    "christian-kohler.npm-intellisense", // Autocompletes npm modules in import statements
+    "shardulm94.trailing-spaces", // Show trailing spaces
+  ]
+}

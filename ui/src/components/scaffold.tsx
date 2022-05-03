@@ -1,0 +1,90 @@
+import * as React from "react";
+import { Database } from "sql.js";
+import { Routes } from "../shared/routes";
+import { version } from "../shared/sql";
+
+export enum MenuPages {
+  searchGene = "Single gene",
+  searchGenes = "Mulitple genes",
+}
+
+type MenuEnties = Record<MenuPages, { url: string }>;
+
+export function Scaffold(props: {
+  title: React.ReactNode;
+  children: React.ReactNode;
+  db: Database | undefined;
+  currentPage?: MenuPages;
+}) {
+  const [versionEntry, setVersionEntry] = React.useState<
+    version.VersionEntry | undefined
+  >();
+
+  const menuEntries: MenuEnties = {
+    [MenuPages.searchGene]: {
+      url: Routes.Home,
+    },
+    [MenuPages.searchGenes]: {
+      url: Routes.Home,
+    },
+  };
+
+  React.useEffect(() => {
+    if (!props.db) {
+      return;
+    }
+    const v = version.getVersion(props.db);
+    setVersionEntry(v);
+  }, [props.db]);
+
+  const vchild =
+    versionEntry !== undefined ? (
+      <>
+        <small className="text-muted">
+          <span>
+            {" "}
+            updated {versionEntry.date.toLocaleString()} (SHA1:{" "}
+            {versionEntry.sha1.substring(0, 7)})
+          </span>
+        </small>
+      </>
+    ) : (
+      <></>
+    );
+
+  return (
+    <>
+      <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div className="container">
+          <a className="navbar-brand" href={Routes.Home}>
+            <img width={56} height={56} src={require("../../img/logo.png")} />
+            <strong className="ms-3">Gene Panel Overview</strong>
+          </a>
+          <ul className="navbar-nav me-auto">
+            {Object.entries(menuEntries).map(([k, v]) => (
+              <li className="nav-item" key={k}>
+                <a
+                  className={`nav-link ${
+                    props.currentPage === k ? "active" : ""
+                  }`}
+                  aria-current="page"
+                  href={v.url}
+                >
+                  {k}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </nav>
+      <div className="container">
+        <div className="row justify-content-between align-items-center">
+          <div className="col-auto h1 my-3 text-muted">{props.title}</div>
+          <div className="col-auto">{vchild}</div>
+        </div>
+        <hr></hr>
+        {props.children}
+      </div>
+    </>
+  );
+}
