@@ -5,7 +5,7 @@ import { version } from "../shared/sql";
 
 export enum MenuPages {
   searchGene = "Single gene",
-  searchGenes = "Mulitple genes",
+  searchGenes = "Multiple genes",
 }
 
 type MenuEnties = Record<MenuPages, { url: string }>;

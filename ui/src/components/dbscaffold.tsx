@@ -2,7 +2,6 @@ import * as React from "react";
 import SqlJs, { Database } from "sql.js";
 import { fetchWithProgress } from "../shared/api";
 import { AppStatus } from "../shared/appstatus";
-import { version } from "../shared/sql";
 import { ProgressBar } from "./progressbar";
 import { MenuPages, Scaffold } from "./scaffold";
 
@@ -24,15 +23,15 @@ export function DbScaffold({
   children: React.ReactNode;
   currentPage?: MenuPages;
 }) {
-  const [dlProgress, setDlProgress] = React.useState<number | undefined>();
+  const [dlProgress, setDlProgress] = React.useState<number>(0);
   const [appState, setAppState] = React.useState<AppStatus>(AppStatus.Loading);
   const [db, setDb] = React.useState<Database | undefined>();
 
   React.useEffect(() => {
     // TODO: catch error and set app state
     (async () => {
-      const buf = await fetchWithProgress("/gp_01.sqlite", (p) => {
-        setDlProgress(p);
+      const buf = await fetchWithProgress("../gp_01.sqlite", (p) => {
+        setDlProgress(p === undefined ? 100 : p);
       });
       const config = {
         locateFile: (filename: string) => `./${filename}`,
@@ -52,7 +51,7 @@ export function DbScaffold({
             <div className="col text-center text-muted">Loading data...</div>
           </div>
           <div className="col text-center text-muted">
-            {dlProgress !== undefined ? (dlProgress * 100).toFixed(1) : ""}%
+            {(dlProgress * 100).toFixed(1)}%
           </div>
           <ProgressBar progress={dlProgress} />
           <div className="row"></div>

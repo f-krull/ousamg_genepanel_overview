@@ -155,6 +155,7 @@ export namespace genepanels {
       WHERE
         g.genepanel_name = :name
         AND genepanel_version = :version
+      ORDER BY g2.symbol
       `);
     const p = { ":name": name, ":version": version };
     stmt.bind(p);

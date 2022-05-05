@@ -28,14 +28,18 @@ function GenepanelInfo({
     <>
       <Description k="Gene panel name" v={genepanelName} />
       <Description k="Gene panel version" v={genepanelVersion} />
-      <div className="row">
-        {genes?.map((e) => (
-          <div key={e.id} className="col">
-            <a href={Routes.Gene(e.id)}>
-              {e.symbol} ({e.id})
-            </a>
-          </div>
-        ))}
+      <hr />
+      <div className="my-2">
+        <div className="text-muted small fw-bold">Genes</div>
+        <div className="row p-2">
+          {genes?.map((e) => (
+            <div key={e.id} className="col-4 col-lg-2 col-md-3 text-truncate">
+              <a href={Routes.Gene(e.id)}>
+                {e.symbol} ({e.id})
+              </a>
+            </div>
+          ))}
+        </div>
       </div>
     </>
   );

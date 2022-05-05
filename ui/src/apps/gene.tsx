@@ -43,7 +43,7 @@ function Table({
           },
         },
         {
-          title: "Version",
+          title: "Latest version",
           field: "genepanelVersion",
         },
         {
@@ -109,7 +109,7 @@ function GeneInfo({ db, hgncId }: { db: Database; hgncId: string }) {
       <Description k="Name" v={genenameEntry.name} />
       <hr />
       <div className="my-2">
-        <small className="text-muted">Gene Panels</small>
+        <div className="text-muted small fw-bold">Gene Panels</div>
       </div>
       <Table genepanelRows={genepanelRows || []} />
     </>
