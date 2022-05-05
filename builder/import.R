@@ -74,8 +74,8 @@ import_genenames <- function(db, file_path) {
   colHgncId         <- "HGNC.ID"
   colApprovedSymbol <- "Approved.symbol"
   colApprovedName   <- "Approved.name"
-  #  [4] "Status"            "Previous.symbols"  "Alias.symbols"    
-  #  [7] "Chromosome"        "Accession.numbers" "RefSeq.IDs"       
+  #  [4] "Status"            "Previous.symbols"  "Alias.symbols"
+  #  [7] "Chromosome"        "Accession.numbers" "RefSeq.IDs"
   # [10] "Alias.names"
   d_gn <- read.table(file_path, sep="\t", header=T, fill=T, quote="")
   # patch first col ("HGNC:11297" -> "11297")
@@ -181,5 +181,27 @@ for (genepanel_id in genepanel_dirs) {
   #   ,""
   # )
 }
+# prune genenames
+DBI::dbExecute(db,
+  "WITH ids AS (
+    SELECT
+      DISTINCT g.id
+    FROM
+      genepanels g
+    WHERE
+      g.id NOT NULL
+    )
+    DELETE
+    FROM
+      genenames
+    WHERE
+      hgnc_id NOT IN (
+      SELECT
+        id
+      FROM
+        ids)"
+)
+
+DBI::dbExecute(db, "VACUUM")
 
 cat("ok\n")
