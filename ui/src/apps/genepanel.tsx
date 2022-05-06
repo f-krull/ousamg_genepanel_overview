@@ -33,9 +33,12 @@ function GenepanelInfo({
         <div className="text-muted small fw-bold">Genes</div>
         <div className="row p-2">
           {genes?.map((e) => (
-            <div key={e.id} className="col-4 col-lg-2 col-md-3 text-truncate">
-              <a href={Routes.Gene(e.id)}>
-                {e.symbol} ({e.id})
+            <div
+              key={e.hgnc_id}
+              className="col-4 col-lg-2 col-md-3 text-truncate"
+            >
+              <a href={Routes.Gene(e.hgnc_id)}>
+                {e.symbol} ({e.hgnc_id})
               </a>
             </div>
           ))}

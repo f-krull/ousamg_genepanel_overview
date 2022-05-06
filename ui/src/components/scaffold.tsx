@@ -28,7 +28,7 @@ export function Scaffold(props: {
       url: Routes.Home,
     },
     [MenuPages.searchGenes]: {
-      url: Routes.Home,
+      url: Routes.InpGenes,
     },
   };
 

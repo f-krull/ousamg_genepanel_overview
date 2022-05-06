@@ -77,7 +77,7 @@ function GeneInfo({ db, hgncId }: { db: Database; hgncId: string }) {
   }, []);
 
   const genepanelRows = React.useMemo(() => {
-    const genepanelRows = genepanels.searchLatestById(db, hgncId);
+    const genepanelRows = genepanels.searchLatestByHgncId(db, hgncId);
     return genepanelRows;
   }, []);
 

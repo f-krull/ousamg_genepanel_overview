@@ -1,5 +1,6 @@
 export namespace Routes {
   export const Home = "./index.html";
+  export const InpGenes = "./inpgenes.html";
   const _Gene = "./gene.html";
   const _Genepanel = "./genepanel.html";
 

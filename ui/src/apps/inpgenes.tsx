@@ -6,98 +6,115 @@ import { genenames } from "../shared/sql";
 import { Routes } from "../shared/routes";
 import { DbContext, DbScaffold } from "../components/dbscaffold";
 
-function SearchGene({
+interface GeneLookupStatus {
+  [k: string]: genenames.GenenameEntry[];
+}
+
+function GeneHit({
+  children,
+  error,
+  key,
+}: {
+  children: React.ReactNode;
+  error: boolean;
+  key: string;
+}) {
+  return (
+    <div className="col-12" key={key}>
+      <span className={`badge rounded-pill bg-${error ? "danger" : "success"}`}>
+        {children}
+      </span>
+    </div>
+  );
+}
+
+function SearchGenes({
   db,
   onInput,
 }: {
   db: Database;
-  geneSymbols: string[];
   onInput: (geneCandidates: genenames.GenenameEntry[]) => void;
 }) {
+  const [geneLookupStatus, setGeneLookupStatus] =
+    React.useState<GeneLookupStatus>({});
+
   return (
     <div className="mb-3 row">
-      <label htmlFor="inpGenesymbol" className="col-sm-2 col-form-label">
-        Gene symbol
-      </label>
-      <div className="col-sm-10">
-        <input
-          type="text"
+      <div className="col-6">
+        <label htmlFor="inpGenesymbol" className="my-1">
+          Gene symbols / HGNC IDs:
+        </label>
+        <textarea
           className="form-control"
           id="inpGenesymbol"
-          placeholder="BRCA2"
-          list="inpGenesymbolOptions"
+          placeholder="BRCA2, NOTCH1, 3808"
           onInput={(e) => {
+            const isNumeric = (str: string): boolean => {
+              return RegExp("^[0-9]+$").test(str);
+            };
             const q = e.currentTarget.value;
-            if (q.length < 2) {
-              onInput([]);
-              return;
-            }
+            const words: string[] = q
+              .replace(/,/g, " ")
+              .split(" ")
+              .map((e) => e.trim())
+              .filter((e) => e !== "");
+            const glsUpdated: GeneLookupStatus = {};
+            words.forEach((w) => {
+              if (geneLookupStatus.hasOwnProperty(w)) {
+                // already defined?
+                glsUpdated[w] = geneLookupStatus[w];
+              } else if (isNumeric(w[0])) {
+                // hgnc ID?
+                glsUpdated[w] = genenames.searchByHgncId(db, w);
+              } else {
+                // assume gene
+                glsUpdated[w] = genenames.searchByGeneSymbol(
+                  db,
+                  w.toUpperCase()
+                );
+              }
+              setGeneLookupStatus(glsUpdated);
+            });
             const genes = genenames.searchByPrefix(db, q);
             onInput(genes);
           }}
         />
-        {/* <datalist id="inpGenesymbolOptions">
-        {geneSymbols.map((o) => (
-          <option key={o} value={o}></option>
-        ))}
-      </datalist> */}
+      </div>
+      <div className="col-6">
+        <div className="row">
+          {Object.entries(geneLookupStatus)
+            .map(([query, results]) => {
+              if (results.length === 0) {
+                return [
+                  <GeneHit error={true} key={query}>
+                    {query}
+                  </GeneHit>,
+                ];
+              }
+              return results.map((result) => (
+                <GeneHit error={false} key={query}>
+                  {`${result.symbol} (${result.hgncId}) ${result.name}`}
+                </GeneHit>
+              ));
+            })
+            .flat()}
+        </div>
       </div>
     </div>
   );
 }
 
-function SearchHgnc({
-  db,
-  onInput,
-}: {
-  db: Database;
-  onInput: (geneCandidates: genenames.GenenameEntry[]) => void;
-}) {
-  return (
-    <div className="mb-3 row">
-      <label htmlFor="inpHgncId" className="col-sm-2 col-form-label">
-        HGNC ID
-      </label>
-      <div className="col-sm-10">
-        <input
-          type="number"
-          className="form-control"
-          id="inpHgncId"
-          placeholder="1101"
-          onInput={(e) => {
-            const q = e.currentTarget.value;
-            if (q.length == 0) {
-              onInput([]);
-              return;
-            }
-            const genes = genenames.searchByHgncId(db, q);
-            onInput(genes);
-          }}
-        />
-      </div>
-    </div>
-  );
-}
-function HomeApp(props: any) {
+function InpGenesApp(props: any) {
   const [geneCandidates, setGeneCandidates] = React.useState<
     genenames.GenenameEntry[]
   >([]);
 
   return (
-    <DbScaffold title="Single Gene Search" currentPage={MenuPages.searchGene}>
+    <DbScaffold title="Single Gene Search" currentPage={MenuPages.searchGenes}>
       <DbContext.Consumer>
         {(db) => (
           <>
-            <SearchGene
-              db={db}
-              geneSymbols={Array.from(
-                new Set<string>(geneCandidates.map((e) => e.symbol))
-              )}
-              onInput={(r) => {
-                setGeneCandidates(r);
-              }}
-            />
-            <SearchHgnc
+            <SearchGenes
               db={db}
               onInput={(r) => {
                 setGeneCandidates(r);
@@ -156,5 +173,5 @@ function HomeApp(props: any) {
 const rootElement = document.getElementById("app");
 if (rootElement) {
   const root = createRoot(rootElement);
-  root.render(<HomeApp />);
+  root.render(<InpGenesApp />);
 }
