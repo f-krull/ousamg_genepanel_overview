@@ -13,14 +13,12 @@ interface GeneLookupStatus {
 function GeneHit({
   children,
   error,
-  key,
 }: {
   children: React.ReactNode;
   error: boolean;
-  key: string;
 }) {
   return (
-    <div className="col-12" key={key}>
+    <div className="col-12">
       <span className={`badge rounded-pill bg-${error ? "danger" : "success"}`}>
         {children}
       </span>
@@ -28,142 +26,109 @@ function GeneHit({
   );
 }
 
-function SearchGenes({
-  db,
-  onInput,
-}: {
-  db: Database;
-  onInput: (geneCandidates: genenames.GenenameEntry[]) => void;
-}) {
+function InpGenesApp(props: any) {
   const [geneLookupStatus, setGeneLookupStatus] =
     React.useState<GeneLookupStatus>({});
 
-  return (
-    <div className="mb-3 row">
-      <div className="col-6">
-        <label htmlFor="inpGenesymbol" className="my-1">
-          Gene symbols / HGNC IDs:
-        </label>
-        <textarea
-          className="form-control"
-          id="inpGenesymbol"
-          placeholder="BRCA2, NOTCH1, 3808"
-          onInput={(e) => {
-            const isNumeric = (str: string): boolean => {
-              return RegExp("^[0-9]+$").test(str);
-            };
-            const q = e.currentTarget.value;
-            const words: string[] = q
-              .replace(/,/g, " ")
-              .split(" ")
-              .map((e) => e.trim())
-              .filter((e) => e !== "");
-            const glsUpdated: GeneLookupStatus = {};
-            words.forEach((w) => {
-              if (geneLookupStatus.hasOwnProperty(w)) {
-                // already defined?
-                glsUpdated[w] = geneLookupStatus[w];
-              } else if (isNumeric(w[0])) {
-                // hgnc ID?
-                glsUpdated[w] = genenames.searchByHgncId(db, w);
-              } else {
-                // assume gene
-                glsUpdated[w] = genenames.searchByGeneSymbol(
-                  db,
-                  w.toUpperCase()
-                );
-              }
-              setGeneLookupStatus(glsUpdated);
-            });
-            const genes = genenames.searchByPrefix(db, q);
-            onInput(genes);
-          }}
-        />
-      </div>
-      <div className="col-6">
-        <div className="row">
-          {Object.entries(geneLookupStatus)
-            .map(([query, results]) => {
-              if (results.length === 0) {
-                return [
-                  <GeneHit error={true} key={query}>
-                    {query}
-                  </GeneHit>,
-                ];
-              }
-              return results.map((result) => (
-                <GeneHit error={false} key={query}>
-                  {`${result.symbol} (${result.hgncId}) ${result.name}`}
-                </GeneHit>
-              ));
-            })
-            .flat()}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function InpGenesApp(props: any) {
-  const [geneCandidates, setGeneCandidates] = React.useState<
-    genenames.GenenameEntry[]
-  >([]);
+  const numFound = Object.values(geneLookupStatus).filter(
+    (v) => v.length !== 0
+  ).length;
+  const numSearched = Object.keys(geneLookupStatus).length;
 
   return (
-    <DbScaffold title="Single Gene Search" currentPage={MenuPages.searchGenes}>
+    <DbScaffold title="Multi Gene Search" currentPage={MenuPages.searchGenes}>
       <DbContext.Consumer>
         {(db) => (
-          <>
-            <SearchGenes
-              db={db}
-              onInput={(r) => {
-                setGeneCandidates(r);
-              }}
-            />
-            <table className="table">
-              <thead>
-                <tr>
-                  <th>Symbol</th>
-                  <th>HGNC ID</th>
-                  <th>Name</th>
-                </tr>
-              </thead>
-              <tbody>
-                {geneCandidates.map((c) => {
-                  const url = Routes.Gene(c.hgncId);
-                  return (
-                    <tr
-                      className="link-primary"
-                      key={`${c.name}_${c.hgncId}`}
-                      role="button"
-                      onClick={() => window.location.assign(url)}
-                    >
-                      <td>
-                        <a href={url}>{c.symbol}</a>
-                      </td>
-                      <td>{c.hgncId}</td>
-                      <td>{c.name}</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-            {geneCandidates.length === 1 && (
-              <>
-                <div
-                  role="button"
-                  className="btn btn-primary"
-                  onClick={() =>
-                    window.location.assign(
-                      Routes.Gene(geneCandidates[0].hgncId)
-                    )
-                  }
-                >
-                  Select gene
-                </div>
-              </>
-            )}
-          </>
+          <div className="mb-3 row">
+            <div className="col-6">
+              <label htmlFor="inpGenesymbol" className="my-1">
+                Gene symbols / HGNC IDs:
+              </label>
+              <textarea
+                className="form-control"
+                id="inpGenesymbol"
+                placeholder="BRCA2, NOTCH1, 3808"
+                onInput={(e) => {
+                  const isNumeric = (str: string): boolean => {
+                    return RegExp("^[0-9]+$").test(str);
+                  };
+                  const q = e.currentTarget.value;
+                  // split into sep words - delimiters: " " and ","
+                  const words: string[] = q
+                    .replace(/,/g, " ")
+                    .replace(/\n/g, " ")
+                    .split(" ")
+                    .map((e) => e.trim())
+                    .filter((e) => e !== "");
+                  // init new dict
+                  const glsUpdated: GeneLookupStatus = {};
+                  words.forEach((w) => {
+                    if (geneLookupStatus.hasOwnProperty(w)) {
+                      // already defined?
+                      glsUpdated[w] = geneLookupStatus[w];
+                    } else if (isNumeric(w[0])) {
+                      // hgnc ID?
+                      glsUpdated[w] = genenames.searchByHgncId(db, w);
+                    } else {
+                      // assume gene
+                      glsUpdated[w] = genenames.searchByGeneSymbol(
+                        db,
+                        w.toUpperCase()
+                      );
+                    }
+                    setGeneLookupStatus(glsUpdated);
+                  });
+                  //onInput(genes);
+                }}
+              />
+              <div
+                role="button"
+                className="btn btn-primary my-2"
+                onClick={() => {
+                  const ids = Object.values(geneLookupStatus)
+                    .flat()
+                    .map((g) => g.hgncId);
+                  window.location.assign(Routes.Genes(ids));
+                }}
+              >
+                Select genes
+              </div>
+              <span
+                className={`${
+                  numFound !== numSearched ? "bg-warning" : ""
+                } mx-2 p-1 rounded`}
+              >
+                {numFound}/{numSearched} genes found
+              </span>
+            </div>
+            <div className="col-6">
+              <div className="row">
+                {Object.entries(geneLookupStatus)
+                  .map(([query, results]) => {
+                    if (results.length === 0) {
+                      return [
+                        <GeneHit error={true} key={query}>
+                          {query}
+                        </GeneHit>,
+                      ];
+                    }
+                    return results.map((result) => {
+                      return (
+                        <GeneHit error={false} key={query}>
+                          <a
+                            href={Routes.Gene(result.hgncId)}
+                            className="text-light text-decoration-none"
+                          >
+                            {`${result.symbol} (HGNC: ${result.hgncId}) ${result.name}`}
+                          </a>
+                        </GeneHit>
+                      );
+                    });
+                  })
+                  .flat()}
+              </div>
+            </div>
+          </div>
         )}
       </DbContext.Consumer>
     </DbScaffold>
