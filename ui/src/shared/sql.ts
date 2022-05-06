@@ -32,6 +32,29 @@ export namespace genenames {
     return r;
   }
 
+  export function searchByGeneSymbol(
+    db: Database,
+    symbol: string
+  ): GenenameEntry[] {
+    const stmt = db.prepare(`
+      SELECT distinct
+          symbol
+          ,hgnc_id as hgncId
+          ,name
+      FROM genenames
+      WHERE symbol = :symbol
+      ORDER BY name
+      `);
+    const p = { ":symbol": symbol };
+    stmt.bind(p);
+    const r: GenenameEntry[] = [];
+    while (stmt.step()) {
+      const row = stmt.getAsObject();
+      r.push(row as unknown as GenenameEntry);
+    }
+    return r;
+  }
+
   export function searchByHgncId(
     db: Database,
     hgncId: string
@@ -94,37 +117,53 @@ export namespace genepanels {
     inheritance: string;
   }
 
-  export function searchLatestById(db: Database, id: string): GenepanelEntry[] {
+  export function searchLatestByHgncId(
+    db: Database,
+    hgnc_id: string
+  ): GenepanelEntry[] {
     const stmt = db.prepare(`
-    WITH latest_genepanels AS (
-      SELECT
-        genepanel_name,
-        MAX(genepanel_version) AS genepanel_version
-        FROM genepanels l
-      WHERE
-        l.id = :id
-      GROUP BY
-        genepanel_name
+      WITH refseq_ids AS (
+        SELECT
+          id
+        FROM
+          refseq r
+        WHERE
+          r.hgnc_id = :hgnc_id
+      ),
+      latest_genepanels AS (
+        SELECT
+          name as name,
+          MAX(version) AS version
+          --TODO: sort by date
+        FROM
+          genepanels l
+        GROUP BY
+          name
       )
       SELECT
-        id
-        ,genepanel_name AS genepanelName
+        genepanel_name AS genepanelName
         ,genepanel_version AS genepanelVersion
-        ,transcript
+        ,refseq_id AS transcript
         ,transcript_source AS transcriptSource
-        ,inheritance
-        FROM genepanels g
+        ,inh_mode
+      FROM
+        genepanel_regions g
       WHERE
-        g.id = :id
-        AND (g.genepanel_name,
-        g.genepanel_version) IN (
-        SELECT
-          l.genepanel_name,
-          l.genepanel_version
-        FROM
-          latest_genepanels l)
+        refseq_id IN (
+          SELECT
+            id
+          FROM
+            refseq_ids
+        )
+        AND (g.genepanel_name,g.genepanel_version) IN (
+          SELECT
+            l.name,
+            l.version
+          FROM
+            latest_genepanels l
+        )
       `);
-    const p = { ":id": id };
+    const p = { ":hgnc_id": hgnc_id };
     stmt.bind(p);
     const r: GenepanelEntry[] = [];
     while (stmt.step()) {
@@ -135,7 +174,7 @@ export namespace genepanels {
   }
 
   export interface Gene {
-    id: string;
+    hgnc_id: string;
     symbol: string;
   }
 
@@ -145,16 +184,19 @@ export namespace genepanels {
     version: string
   ): Gene[] | undefined {
     const stmt = db.prepare(`
-      SELECT
-        g.id,
+      SELECT distinct
+        g2.hgnc_id,
         g2.symbol
       FROM
-        genepanels g
+        genepanel_regions g
+      LEFT OUTER JOIN refseq r ON
+        r.id = g.refseq_id
       LEFT OUTER JOIN genenames g2 ON
-        g.id = g2.hgnc_id
+        r.hgnc_id = g2.hgnc_id
       WHERE
         g.genepanel_name = :name
         AND genepanel_version = :version
+        AND g2.hgnc_id NOT NULL
       ORDER BY g2.symbol
       `);
     const p = { ":name": name, ":version": version };
