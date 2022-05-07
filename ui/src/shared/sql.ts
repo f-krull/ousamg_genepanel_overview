@@ -1,4 +1,4 @@
-import { Database } from "sql.js";
+import { Database, ParamsObject } from "sql.js";
 
 export namespace genenames {
   export interface GenenameEntry {
@@ -206,6 +206,59 @@ export namespace genepanels {
       const row = stmt.getAsObject();
       r.push(row as unknown as Gene);
     }
+    return r;
+  }
+
+  export interface GeneCount {
+    genepanelName: string;
+    genepanelVersion: string;
+    numHits: number;
+    isLatest: number;
+  }
+
+  export function getCountByHgncIds(
+    db: Database,
+    hgnc_ids: string[]
+  ): GeneCount[] {
+    db.run("DROP TABLE IF EXISTS temp_hgnc_ids");
+    db.run(`CREATE TEMP TABLE temp_hgnc_ids (
+        id TEXT
+      )`);
+    hgnc_ids.forEach((hgnc_id) => {
+      db.run("INSERT INTO temp_hgnc_ids VALUES (:hgnc_id)", {
+        ":hgnc_id": hgnc_id,
+      });
+    });
+    const r: GeneCount[] = [];
+    db.each(
+      `
+    with tmp_refseq as (
+      select r.id, r.hgnc_id from refseq r where r.hgnc_id in (select id from temp_hgnc_ids)
+      ),
+      latest_genepanels AS (
+        SELECT
+          name as name,
+          MAX(version) AS version
+          --TODO: sort by date
+        FROM
+          genepanels l
+        GROUP BY
+          name
+      )
+      select genepanel_name as genepanelName, genepanel_version as genepanelVersion, count(hgnc_id) as numHits,
+      case when (genepanel_name, genepanel_version) in (select name, version from latest_genepanels) then 1 else 0 end as isLatest
+      from (select DISTINCT  gr.genepanel_name, gr.genepanel_version, tr.hgnc_id
+        from genepanel_regions gr
+        join tmp_refseq tr
+        on tr.id = gr.refseq_id
+        )
+        group by genepanel_name, genepanel_version
+        order by genepanel_name, genepanel_version
+        `,
+      (row: ParamsObject) => r.push(row as unknown as GeneCount),
+      () => {}
+    );
+    //db.run("DROP TABLE IF EXISTS temp_hgnc_ids");
     return r;
   }
 }

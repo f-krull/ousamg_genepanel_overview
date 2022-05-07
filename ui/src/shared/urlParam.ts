@@ -15,4 +15,12 @@ export class UrlParam {
     }
     return decodeURIComponent(par);
   }
+
+  getList(name: string): string[] | undefined {
+    const p = this.get(name);
+    if (p === undefined) {
+      return undefined;
+    }
+    return p.split(",");
+  }
 }

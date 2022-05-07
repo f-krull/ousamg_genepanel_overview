@@ -40,47 +40,49 @@ function InpGenesApp(props: any) {
       <DbContext.Consumer>
         {(db) => (
           <div className="mb-3 row">
-            <div className="col-6">
-              <label htmlFor="inpGenesymbol" className="my-1">
-                Gene symbols / HGNC IDs:
-              </label>
-              <textarea
-                className="form-control"
-                id="inpGenesymbol"
-                placeholder="BRCA2, NOTCH1, 3808"
-                onInput={(e) => {
-                  const isNumeric = (str: string): boolean => {
-                    return RegExp("^[0-9]+$").test(str);
-                  };
-                  const q = e.currentTarget.value;
-                  // split into sep words - delimiters: " " and ","
-                  const words: string[] = q
-                    .replace(/,/g, " ")
-                    .replace(/\n/g, " ")
-                    .split(" ")
-                    .map((e) => e.trim())
-                    .filter((e) => e !== "");
-                  // init new dict
-                  const glsUpdated: GeneLookupStatus = {};
-                  words.forEach((w) => {
-                    if (geneLookupStatus.hasOwnProperty(w)) {
-                      // already defined?
-                      glsUpdated[w] = geneLookupStatus[w];
-                    } else if (isNumeric(w[0])) {
-                      // hgnc ID?
-                      glsUpdated[w] = genenames.searchByHgncId(db, w);
-                    } else {
-                      // assume gene
-                      glsUpdated[w] = genenames.searchByGeneSymbol(
-                        db,
-                        w.toUpperCase()
-                      );
-                    }
-                    setGeneLookupStatus(glsUpdated);
-                  });
-                  //onInput(genes);
-                }}
-              />
+            <div className="col-6 mb-3">
+              <div className="mb-3">
+                <label htmlFor="inpGenesymbol" className="form-label my-1">
+                  Gene symbols / HGNC IDs:
+                </label>
+                <textarea
+                  className="form-control"
+                  id="inpGenesymbol"
+                  placeholder="BRCA2, NOTCH1, 3808"
+                  onInput={(e) => {
+                    const isNumeric = (str: string): boolean => {
+                      return RegExp("^[0-9]+$").test(str);
+                    };
+                    const q = e.currentTarget.value;
+                    // split into sep words - delimiters: " " and ","
+                    const words: string[] = q
+                      .replace(/,/g, " ")
+                      .replace(/\n/g, " ")
+                      .split(" ")
+                      .map((e) => e.trim())
+                      .filter((e) => e !== "");
+                    // init new dict
+                    const glsUpdated: GeneLookupStatus = {};
+                    words.forEach((w) => {
+                      if (geneLookupStatus.hasOwnProperty(w)) {
+                        // already defined?
+                        glsUpdated[w] = geneLookupStatus[w];
+                      } else if (isNumeric(w[0])) {
+                        // hgnc ID?
+                        glsUpdated[w] = genenames.searchByHgncId(db, w);
+                      } else {
+                        // assume gene
+                        glsUpdated[w] = genenames.searchByGeneSymbol(
+                          db,
+                          w.toUpperCase()
+                        );
+                      }
+                      setGeneLookupStatus(glsUpdated);
+                    });
+                    //onInput(genes);
+                  }}
+                />
+              </div>
               <div
                 role="button"
                 className="btn btn-primary my-2"

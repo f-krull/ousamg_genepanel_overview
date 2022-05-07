@@ -6,12 +6,12 @@ export namespace Routes {
   const _Genepanel = "./genepanel.html";
 
   export const Gene = (id: string) =>
-    `${_Gene}?hgncId=${encodeURIComponent(id)}`;
+    `${_Gene}?hgnc_id=${encodeURIComponent(id)}`;
 
   export const Genepanel = (genepanelName: string, genepanelVersion: string) =>
     `${_Genepanel}?name=${encodeURIComponent(
       genepanelName
     )}&version=${encodeURIComponent(genepanelVersion)}`;
   export const Genes = (ids: string[]) =>
-    `${_Genes}?hgncIds=${encodeURIComponent(ids.join(","))}`;
+    `${_Genes}?hgnc_ids=${encodeURIComponent(ids.join(","))}`;
 }

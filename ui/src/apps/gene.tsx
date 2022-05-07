@@ -8,6 +8,7 @@ import "tabulator-tables/dist/css/tabulator.css";
 import "tabulator-tables/dist/css/tabulator_bootstrap5.css";
 import { DbContext, DbScaffold } from "../components/dbscaffold";
 import { Description } from "../components/description";
+import { UrlParam } from "../shared/urlParam";
 
 function Table({
   genepanelRows,
@@ -19,14 +20,12 @@ function Table({
     Tabulator.registerModule(FormatModule);
     var table = new Tabulator("#table", {
       data: genepanelRows,
-      //table setup options
-      height: "60vh", // set height of table (in CSS or here), this enables the Virtual DOM and improves render speed dramatically (can be any valid css height value)
-      layout: "fitColumns", //fit columns to width of table (optional)
+      height: "60vh",
+      layout: "fitColumns",
       columnDefaults: {
         title: "",
       },
       columns: [
-        //Define Table Columns
         {
           title: "Gene panel",
           field: "genepanelName",
@@ -118,8 +117,8 @@ function GeneInfo({ db, hgncId }: { db: Database; hgncId: string }) {
 
 function GeneApp(props: any) {
   // get gene id
-  const urlParams = new URL(document.location.href).searchParams;
-  const hgncId = urlParams.get("hgncId") || undefined;
+  const urlParams = new UrlParam();
+  const hgncId = urlParams.get("hgnc_id");
 
   return (
     <DbScaffold title="Gene Info">
