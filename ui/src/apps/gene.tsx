@@ -116,6 +116,7 @@ function GeneInfo({ db, hgncId }: { db: Database; hgncId: string }) {
 }
 
 function GeneApp(props: any) {
+  0;
   // get gene id
   const urlParams = new UrlParam();
   const hgncId = urlParams.get("hgnc_id");

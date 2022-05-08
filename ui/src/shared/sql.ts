@@ -129,16 +129,6 @@ export namespace genepanels {
           refseq r
         WHERE
           r.hgnc_id = :hgnc_id
-      ),
-      latest_genepanels AS (
-        SELECT
-          name as name,
-          MAX(version) AS version
-          --TODO: sort by date
-        FROM
-          genepanels l
-        GROUP BY
-          name
       )
       SELECT
         genepanel_name AS genepanelName
@@ -213,7 +203,8 @@ export namespace genepanels {
     genepanelName: string;
     genepanelVersion: string;
     numHits: number;
-    isLatest: number;
+    isLatest: boolean;
+    dateCreated: Date | undefined;
   }
 
   export function getCountByHgncIds(
@@ -233,29 +224,31 @@ export namespace genepanels {
     db.each(
       `
     with tmp_refseq as (
-      select r.id, r.hgnc_id from refseq r where r.hgnc_id in (select id from temp_hgnc_ids)
-      ),
-      latest_genepanels AS (
-        SELECT
-          name as name,
-          MAX(version) AS version
-          --TODO: sort by date
-        FROM
-          genepanels l
-        GROUP BY
-          name
+      SELECT r.id, r.hgnc_id from refseq r where r.hgnc_id in (select id from temp_hgnc_ids)
       )
-      select genepanel_name as genepanelName, genepanel_version as genepanelVersion, count(hgnc_id) as numHits,
-      case when (genepanel_name, genepanel_version) in (select name, version from latest_genepanels) then 1 else 0 end as isLatest
-      from (select DISTINCT  gr.genepanel_name, gr.genepanel_version, tr.hgnc_id
+      select genepanel_name, genepanel_version, count(hgnc_id) as numHits,
+        case when (genepanel_name, genepanel_version) in (select name, version from latest_genepanels) then 1 else 0 end as isLatest,
+        gp.date_created
+      from (select DISTINCT gr.genepanel_name, gr.genepanel_version, tr.hgnc_id
         from genepanel_regions gr
         join tmp_refseq tr
         on tr.id = gr.refseq_id
-        )
+      ) as gpr
+      LEFT OUTER JOIN genepanels gp ON gp.name = gpr.genepanel_name AND gp.version = gpr.genepanel_version
         group by genepanel_name, genepanel_version
         order by genepanel_name, genepanel_version
         `,
-      (row: ParamsObject) => r.push(row as unknown as GeneCount),
+      (row: ParamsObject) =>
+        r.push({
+          numHits: row.numHits as number,
+          isLatest: (row.isLatest as number) ? true : false,
+          dateCreated:
+            row.date_created !== null
+              ? new Date(row.date_created as string)
+              : undefined,
+          genepanelName: row.genepanel_name as string,
+          genepanelVersion: row.genepanel_version as string,
+        }),
       () => {}
     );
     //db.run("DROP TABLE IF EXISTS temp_hgnc_ids");

@@ -7,7 +7,10 @@ import { Routes } from "../shared/routes";
 import { DbContext, DbScaffold } from "../components/dbscaffold";
 
 interface GeneLookupStatus {
-  [k: string]: genenames.GenenameEntry[];
+  [k: string]: {
+    index: number;
+    data: genenames.GenenameEntry[];
+  };
 }
 
 function GeneHit({
@@ -31,7 +34,7 @@ function InpGenesApp(props: any) {
     React.useState<GeneLookupStatus>({});
 
   const numFound = Object.values(geneLookupStatus).filter(
-    (v) => v.length !== 0
+    (v) => v.data.length !== 0
   ).length;
   const numSearched = Object.keys(geneLookupStatus).length;
 
@@ -49,6 +52,7 @@ function InpGenesApp(props: any) {
                   className="form-control"
                   id="inpGenesymbol"
                   placeholder="BRCA2, NOTCH1, 3808"
+                  rows={10}
                   onInput={(e) => {
                     const isNumeric = (str: string): boolean => {
                       return RegExp("^[0-9]+$").test(str);
@@ -63,23 +67,28 @@ function InpGenesApp(props: any) {
                       .filter((e) => e !== "");
                     // init new dict
                     const glsUpdated: GeneLookupStatus = {};
-                    words.forEach((w) => {
+                    words.forEach((w, index) => {
                       if (geneLookupStatus.hasOwnProperty(w)) {
                         // already defined?
                         glsUpdated[w] = geneLookupStatus[w];
                       } else if (isNumeric(w[0])) {
                         // hgnc ID?
-                        glsUpdated[w] = genenames.searchByHgncId(db, w);
+                        glsUpdated[w] = {
+                          index,
+                          data: genenames.searchByHgncId(db, w),
+                        };
                       } else {
                         // assume gene
-                        glsUpdated[w] = genenames.searchByGeneSymbol(
-                          db,
-                          w.toUpperCase()
-                        );
+                        glsUpdated[w] = {
+                          index,
+                          data: genenames.searchByGeneSymbol(
+                            db,
+                            w.toUpperCase()
+                          ),
+                        };
                       }
-                      setGeneLookupStatus(glsUpdated);
                     });
-                    //onInput(genes);
+                    setGeneLookupStatus(glsUpdated);
                   }}
                 />
               </div>
@@ -88,6 +97,7 @@ function InpGenesApp(props: any) {
                 className="btn btn-primary my-2"
                 onClick={() => {
                   const ids = Object.values(geneLookupStatus)
+                    .map((g) => g.data)
                     .flat()
                     .map((g) => g.hgncId);
                   window.location.assign(Routes.Genes(ids));
@@ -105,29 +115,36 @@ function InpGenesApp(props: any) {
             </div>
             <div className="col-6">
               <div className="row">
-                {Object.entries(geneLookupStatus)
-                  .map(([query, results]) => {
-                    if (results.length === 0) {
-                      return [
-                        <GeneHit error={true} key={query}>
-                          {query}
-                        </GeneHit>,
-                      ];
-                    }
-                    return results.map((result) => {
-                      return (
-                        <GeneHit error={false} key={query}>
-                          <a
-                            href={Routes.Gene(result.hgncId)}
-                            className="text-light text-decoration-none"
-                          >
-                            {`${result.symbol} (HGNC: ${result.hgncId}) ${result.name}`}
-                          </a>
-                        </GeneHit>
-                      );
-                    });
-                  })
-                  .flat()}
+                {Object.values(geneLookupStatus).length > 0 &&
+                  "Requested genes:"}
+                <ol>
+                  {Object.entries(geneLookupStatus)
+                    .sort(([, a], [, b]) => a.index - b.index)
+                    .map(([query, results]) => {
+                      if (results.data.length === 0) {
+                        return [
+                          <li key={query} className="ms-4">
+                            <GeneHit error={true}>{query}</GeneHit>
+                          </li>,
+                        ];
+                      }
+                      return results.data.map((result) => {
+                        return (
+                          <li key={query} className="ms-4">
+                            <GeneHit error={false}>
+                              <a
+                                href={Routes.Gene(result.hgncId)}
+                                className="text-light text-decoration-none"
+                              >
+                                {`${result.symbol} (HGNC: ${result.hgncId}) ${result.name}`}
+                              </a>
+                            </GeneHit>
+                          </li>
+                        );
+                      });
+                    })
+                    .flat()}
+                </ol>
               </div>
             </div>
           </div>

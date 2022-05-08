@@ -13,12 +13,15 @@ interface GeneCountTree extends genepanels.GeneCount {
 }
 
 function GenePanels({ db, hgncIds }: { db: Database; hgncIds: string[] }) {
-  const geneCounts = React.useMemo(() => {
+  const [geneCounts, setGeneCounts] = React.useState<GeneCountTree[]>([]);
+
+  React.useEffect(() => {
     const g: GeneCountTree[] = genepanels
       .getCountByHgncIds(db, hgncIds)
       .map((e) => ({ ...e, numHitsRel: e.numHits / hgncIds.length }));
+
     // convert to tree - start with latest gps as parent rows
-    const tree = g.filter((e) => e.isLatest === 1);
+    const tree = g.filter((e) => e.isLatest);
     // convert to GeneCountTree
     tree.forEach((r) => {
       r._children = g.filter(
@@ -27,8 +30,12 @@ function GenePanels({ db, hgncIds }: { db: Database; hgncIds: string[] }) {
           e.genepanelVersion !== r.genepanelVersion
       );
     });
-    return tree;
+    setGeneCounts(tree);
   }, [hgncIds]);
+
+  if (!geneCounts.length) {
+    return <></>;
+  }
 
   return (
     <Table
@@ -63,6 +70,14 @@ function GenePanels({ db, hgncIds }: { db: Database; hgncIds: string[] }) {
             field: "genepanelVersion",
           },
           {
+            title: "Date created",
+            field: "dateCreated",
+            formatter: (e: any) =>
+              e.getValue() === undefined
+                ? ""
+                : (e.getValue() as Date).toISOString().substring(0, 10),
+          },
+          {
             //column group
             title: "Num hits",
             columns: [
@@ -74,7 +89,7 @@ function GenePanels({ db, hgncIds }: { db: Database; hgncIds: string[] }) {
                 title: "Relative",
                 field: "numHitsRel",
                 mutator: (value) => value * 100,
-                formatter: (e) => e.getValue().toFixed(1),
+                formatter: (e) => `${e.getValue().toFixed(1)}%`,
               },
               {
                 title: "Coverage",
@@ -102,6 +117,7 @@ function GenesApp(props: any) {
             // TODO: set error
             return <>no HGNC IDs defined</>;
           }
+          console.log("DbContext.Consumer render");
           return <GenePanels db={db} hgncIds={hgncIds} />;
         }}
       </DbContext.Consumer>
