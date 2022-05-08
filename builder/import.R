@@ -55,7 +55,8 @@ import_genepanel <- function(db, data_path, genepanel_id) {
     m <- regexpr("Date: [0-9-]{10}", line)
     l <- attr(m, "match.length")
     if (l == -1) {
-      return("1970-01-01")
+      #return("1970-01-01")
+      return(list(NULL))
     }
     return(substr(line, m+6, m+l-1))
   })()
