@@ -35,24 +35,29 @@ function GenepanelDiffView({
     `${e.refseqId}, ${e.hgncId}, ${e.geneSymbol}`;
   let ia = 0;
   let ib = 0;
+  let count: { ins: number; del: number } = { del: 0, ins: 0 };
   while (ia < regA.length || ib < regB.length) {
     if (ia >= regA.length) {
       diff.push({ right: toDiffStr(regB[ib]) });
       ib++;
+      count.ins++;
       continue;
     }
     if (ib >= regB.length) {
       diff.push({ left: toDiffStr(regA[ia]) });
       ia++;
+      count.del++;
       continue;
     }
     if (regA[ia].refseqId < regB[ib].refseqId) {
       diff.push({ left: toDiffStr(regA[ia]) });
+      count.del++;
       ia++;
       continue;
     }
     if (regA[ia].refseqId > regB[ib].refseqId) {
       diff.push({ right: toDiffStr(regB[ib]) });
+      count.ins++;
       ib++;
       continue;
     }
@@ -67,6 +72,23 @@ function GenepanelDiffView({
 
   return (
     <Section title={`Comparing gene panels`}>
+      <div className="row text-center">
+        <div className="col">
+          <span
+            className="fw-bold small"
+            style={count.del ? { color: "red" } : { color: "grey" }}
+          >
+            -{count.del}
+          </span>
+          /
+          <span
+            className="fw-bold small"
+            style={count.ins ? { color: "green" } : { color: "grey" }}
+          >
+            +{count.ins}
+          </span>
+        </div>
+      </div>
       <div className="d-flex justify-content-center mb-3">
         <table className="font-monospace small">
           <thead>
@@ -82,7 +104,7 @@ function GenepanelDiffView({
               const isIns = e.left === undefined;
               return (
                 <tr key={i.toString()}>
-                  <td className="text-muted px-2 border-start border-end">
+                  <td className="text-muted px-2 text-end border-start border-end">
                     {i + 1}
                   </td>
                   <td
@@ -146,6 +168,24 @@ function GenepanelDiff({
     [gps, selBName]
   );
 
+  // update url
+  React.useEffect(() => {
+    if (!selAName || !selAVersion || !selBName || !selBVersion) {
+      return;
+    }
+    const url = Routes.GenepanelDiff(
+      {
+        name: selAName,
+        version: selAVersion,
+      },
+      {
+        name: selBName,
+        version: selBVersion,
+      }
+    );
+    window.history.pushState({}, "", url);
+  }, [selAName, selAVersion, selBName, selBVersion]);
+
   return (
     <>
       <Section title={`Select gene panels`}>
@@ -157,7 +197,7 @@ function GenepanelDiff({
             <select
               id="inpGpAName"
               className="form-select"
-              defaultValue={selAName}
+              value={selAName}
               onChange={(e) => {
                 const name = e.currentTarget.value;
                 setSelAName(name);
@@ -184,7 +224,6 @@ function GenepanelDiff({
             <select
               id="inpGpAVersion"
               className="form-select"
-              defaultValue={selAVersion}
               value={selAVersion}
               onChange={(e) => {
                 const version = e.currentTarget.value;
@@ -205,7 +244,7 @@ function GenepanelDiff({
             <select
               id="inpGpBName"
               className="form-select"
-              defaultValue={selBName}
+              value={selBName}
               onChange={(e) => {
                 const name = e.currentTarget.value;
                 setSelBName(name);
@@ -232,7 +271,6 @@ function GenepanelDiff({
             <select
               id="inpGpBVersion"
               className="form-select"
-              defaultValue={selBVersion}
               value={selBVersion}
               onChange={(e) => {
                 const version = e.currentTarget.value;

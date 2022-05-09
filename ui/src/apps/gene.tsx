@@ -55,10 +55,11 @@ function GeneInfo({ db, hgncId }: { db: Database; hgncId: string }) {
         </div>
       </Section>
       <Section
-        title={`Gene panels containing ${genenameEntry.symbol}(${genenameEntry.hgncId})`}
+        title={`Gene panels containing ${genenameEntry.symbol} (${genenameEntry.hgncId})`}
       >
         {genepanelRows.length && (
           <Table
+            domId="genepanelTable"
             options={{
               data: genepanelRows,
               height: "60vh",

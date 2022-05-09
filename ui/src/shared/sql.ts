@@ -1,5 +1,4 @@
 import { Database, ParamsObject } from "sql.js";
-import { DbScaffold } from "../components/dbscaffold";
 
 export namespace genenames {
   export interface GenenameEntry {
@@ -218,7 +217,7 @@ export namespace genepanels {
   }
 
   export interface Gene {
-    hgnc_id: string;
+    hgncId: string;
     symbol: string;
   }
 
@@ -248,7 +247,10 @@ export namespace genepanels {
     const r: Gene[] = [];
     while (stmt.step()) {
       const row = stmt.getAsObject();
-      r.push(row as unknown as Gene);
+      r.push({
+        hgncId: row.hgnc_id as string,
+        symbol: row.symbol as string,
+      });
     }
     return r;
   }
