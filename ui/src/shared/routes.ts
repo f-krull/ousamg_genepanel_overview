@@ -3,10 +3,11 @@ import { genepanels } from "../shared/sql";
 export namespace Routes {
   export const Home = "./index.html";
   export const InpGenes = "./inpgenes.html";
+  export const InpGenepanel = "./inpgenepanel.html";
   const _Gene = "./gene.html";
   const _Genes = "./genes.html";
   const _Genepanel = "./genepanel.html";
-  const _GenepanelDiff = "./genepaneldiff.html";
+  const _GenepanelDiff = "./diffgenepanel.html";
 
   export const Gene = (id: string) =>
     `${_Gene}?hgnc_id=${encodeURIComponent(id)}`;

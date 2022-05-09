@@ -6,7 +6,8 @@ import { version } from "../shared/sql";
 export enum MenuPages {
   searchGene = "Single gene",
   searchGenes = "Multiple genes",
-  genepanelDiff = "Compare panels",
+  diffGenepanel = "Compare panels",
+  searchGenepanel = "Search panels",
 }
 
 type MenuEnties = Record<MenuPages, { url: string }>;
@@ -31,7 +32,10 @@ export function Scaffold(props: {
     [MenuPages.searchGenes]: {
       url: Routes.InpGenes,
     },
-    [MenuPages.genepanelDiff]: {
+    [MenuPages.searchGenepanel]: {
+      url: Routes.InpGenepanel,
+    },
+    [MenuPages.diffGenepanel]: {
       url: Routes.GenepanelDiff(),
     },
   };

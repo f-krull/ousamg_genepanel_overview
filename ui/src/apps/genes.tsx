@@ -10,6 +10,7 @@ import "tabulator-tables/dist/css/tabulator.css";
 import "tabulator-tables/dist/css/tabulator_simple.css";
 import { Section } from "../components/section";
 import { formatDate } from "../shared/format";
+import { cols } from "../shared/tableColumns";
 
 interface GeneCountTree extends genepanels.GeneCount {
   _children?: GeneCountTree[];
@@ -55,21 +56,7 @@ function GenePanels({ db, hgncIds }: { db: Database; hgncIds: string[] }) {
         dataTreeChildIndent: 25,
         dataTreeStartExpanded: true,
         columns: [
-          {
-            title: "Gene panel",
-            field: "name",
-            formatter: "link",
-            formatterParams: {
-              labelField: "name",
-              url: (e) => {
-                const dRow = e.getRow().getData();
-                return Routes.Genepanel({
-                  name: dRow.name,
-                  version: dRow.version,
-                });
-              },
-            },
-          },
+          cols.genepanelName,
           {
             title: "Version",
             field: "version",
@@ -90,14 +77,7 @@ function GenePanels({ db, hgncIds }: { db: Database; hgncIds: string[] }) {
               return `${e.getValue()} (<a href="${url}">diff</a>)`;
             },
           },
-          {
-            title: "Date created",
-            field: "dateCreated",
-            formatter: (e: any) =>
-              e.getValue() === undefined
-                ? ""
-                : formatDate(e.getValue() as Date),
-          },
+          cols.genepanelDateCreated,
           {
             //column group
             title: "Num hits",

@@ -40,11 +40,6 @@ function SearchGene({
             onInput(genes);
           }}
         />
-        {/* <datalist id="inpGenesymbolOptions">
-        {geneSymbols.map((o) => (
-          <option key={o} value={o}></option>
-        ))}
-      </datalist> */}
       </div>
     </>
   );

@@ -54,7 +54,7 @@ function GenepanelInfo({
             {currentGenepanel.isLatest ? (
               ""
             ) : (
-              <span className="">(superseded)</span>
+              <span className="small">(superseded)</span>
             )}
           </Description>
           <Description title="Date created">
@@ -67,7 +67,7 @@ function GenepanelInfo({
               <span key={e.version} className="">
                 {i !== 0 ? ", " : ""}
                 <a href={Routes.Genepanel(e)}>{e.version}</a>
-                <span className="">{e.isLatest ? "(latest)" : ""}</span>
+                <span className="small">{e.isLatest ? "(latest)" : ""}</span>
               </span>
             ))}
             {otherGenepanels.length > 0 ? (

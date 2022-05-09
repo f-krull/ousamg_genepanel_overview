@@ -306,7 +306,7 @@ function GenepanelDiffApp(props: any) {
   const bGenepanelVersion = urlParams.get("b_version");
 
   return (
-    <DbScaffold title="Gene Panel Diff" currentPage={MenuPages.genepanelDiff}>
+    <DbScaffold title="Gene Panel Diff" currentPage={MenuPages.diffGenepanel}>
       <DbContext.Consumer>
         {(db) => {
           return (
