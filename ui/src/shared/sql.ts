@@ -1,4 +1,5 @@
 import { Database, ParamsObject } from "sql.js";
+import { DbScaffold } from "../components/dbscaffold";
 
 export namespace genenames {
   export interface GenenameEntry {
@@ -108,11 +109,15 @@ export namespace version {
 /*----------------------------------------------------------------------------*/
 
 export namespace genepanels {
+  export interface GenepanelId {
+    name: string;
+    version: string;
+  }
+
   export interface GenepanelEntry {
-    id: string;
     genepanelName: string;
     genepanelVersion: string;
-    transcript: string;
+    refseqId: string;
     transcriptSource: string;
     inheritance: string;
   }
@@ -133,7 +138,7 @@ export namespace genepanels {
       SELECT
         genepanel_name AS genepanelName
         ,genepanel_version AS genepanelVersion
-        ,refseq_id AS transcript
+        ,refseq_id AS refseqId
         ,transcript_source AS transcriptSource
         ,inh_mode
       FROM
@@ -159,6 +164,54 @@ export namespace genepanels {
     while (stmt.step()) {
       const row = stmt.getAsObject();
       r.push(row as unknown as GenepanelEntry);
+    }
+    return r;
+  }
+
+  export interface GenepanelGeneEntry extends GenepanelEntry {
+    hgncId: string;
+    geneSymbol: string;
+  }
+
+  export function getGenepanelRegionsByNameVersion(
+    db: Database,
+    gpId: GenepanelId
+  ): GenepanelGeneEntry[] {
+    const stmt = db.prepare(`
+      SELECT distinct
+        g2.hgnc_id
+        ,g2.symbol
+        ,g.refseq_id
+        ,transcript_source
+        ,genepanel_name
+        ,genepanel_version
+        ,inh_mode
+      FROM
+        genepanel_regions g
+      LEFT OUTER JOIN refseq r ON
+        r.id = g.refseq_id
+      LEFT OUTER JOIN genenames g2 ON
+        r.hgnc_id = g2.hgnc_id
+      WHERE
+        g.genepanel_name = :name
+        AND genepanel_version = :version
+        AND g2.hgnc_id NOT NULL
+      ORDER BY refseq_id, g2.hgnc_id, g2.symbol
+      `);
+    const p = { ":name": gpId.name, ":version": gpId.version };
+    stmt.bind(p);
+    const r: GenepanelGeneEntry[] = [];
+    while (stmt.step()) {
+      const row = stmt.getAsObject();
+      r.push({
+        geneSymbol: row.symbol as string,
+        genepanelName: row.genepanel_name as string,
+        genepanelVersion: row.genepanel_version as string,
+        hgncId: row.hgnc_id as string,
+        inheritance: row.inh_mode as string,
+        refseqId: row.refseq_id as string,
+        transcriptSource: row.transcript_source as string,
+      });
     }
     return r;
   }
@@ -199,12 +252,46 @@ export namespace genepanels {
     return r;
   }
 
-  export interface GeneCount {
-    genepanelName: string;
-    genepanelVersion: string;
-    numHits: number;
-    isLatest: boolean;
+  export interface Genepanel {
+    name: string;
+    version: string;
+    //dateCreated: Date // not needed now
     dateCreated: Date | undefined;
+    isLatest: boolean;
+  }
+
+  export function getGenepanels(db: Database): Genepanel[] {
+    const r: Genepanel[] = [];
+    db.each(
+      `
+      SELECT
+        name
+        ,version
+        ,date_created
+        ,CASE
+          WHEN (name, version) in (select name, version from latest_genepanels)
+            then 1
+            else 0
+          END AS is_latest
+      FROM genepanels p
+    `,
+      (row: ParamsObject) =>
+        r.push({
+          isLatest: (row.is_latest as number) ? true : false,
+          dateCreated:
+            row.date_created !== null
+              ? new Date(row.date_created as string)
+              : undefined,
+          name: row.name as string,
+          version: row.version as string,
+        }),
+      () => {}
+    );
+    return r;
+  }
+
+  export interface GeneCount extends Genepanel {
+    numHits: number;
   }
 
   export function getCountByHgncIds(
@@ -246,8 +333,8 @@ export namespace genepanels {
             row.date_created !== null
               ? new Date(row.date_created as string)
               : undefined,
-          genepanelName: row.genepanel_name as string,
-          genepanelVersion: row.genepanel_version as string,
+          name: row.genepanel_name as string,
+          version: row.genepanel_version as string,
         }),
       () => {}
     );

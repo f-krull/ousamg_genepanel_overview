@@ -42,7 +42,7 @@ function InpGenesApp(props: any) {
     <DbScaffold title="Multi Gene Search" currentPage={MenuPages.searchGenes}>
       <DbContext.Consumer>
         {(db) => (
-          <div className="mb-3 row">
+          <div className="mb-3 row g-5">
             <div className="col-6 mb-3">
               <div className="mb-3">
                 <label htmlFor="inpGenesymbol" className="form-label my-1">
@@ -115,22 +115,23 @@ function InpGenesApp(props: any) {
             </div>
             <div className="col-6">
               <div className="row">
-                {Object.values(geneLookupStatus).length > 0 &&
-                  "Requested genes:"}
+                {Object.values(geneLookupStatus).length > 0 && (
+                  <span>Requested genes:</span>
+                )}
                 <ol>
                   {Object.entries(geneLookupStatus)
                     .sort(([, a], [, b]) => a.index - b.index)
                     .map(([query, results]) => {
                       if (results.data.length === 0) {
                         return [
-                          <li key={query} className="ms-4">
+                          <li key={query} className="">
                             <GeneHit error={true}>{query}</GeneHit>
                           </li>,
                         ];
                       }
                       return results.data.map((result) => {
                         return (
-                          <li key={query} className="ms-4">
+                          <li key={query} className="">
                             <GeneHit error={false}>
                               <a
                                 href={Routes.Gene(result.hgncId)}

@@ -6,6 +6,7 @@ import { version } from "../shared/sql";
 export enum MenuPages {
   searchGene = "Single gene",
   searchGenes = "Multiple genes",
+  genepanelDiff = "Compare panels",
 }
 
 type MenuEnties = Record<MenuPages, { url: string }>;
@@ -30,6 +31,9 @@ export function Scaffold(props: {
     [MenuPages.searchGenes]: {
       url: Routes.InpGenes,
     },
+    [MenuPages.genepanelDiff]: {
+      url: Routes.GenepanelDiff(),
+    },
   };
 
   const vchild =
@@ -49,7 +53,7 @@ export function Scaffold(props: {
 
   return (
     <>
-      <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
+      <nav className="navbar navbar-expand-lg navbar-dark bg-dark shadow">
         <div className="container">
           <a className="navbar-brand" href={Routes.Home}>
             <img width={56} height={56} src={require("../../img/logo.png")} />
@@ -77,7 +81,6 @@ export function Scaffold(props: {
           <div className="col-auto h1 my-3 text-muted">{props.title}</div>
           <div className="col-auto">{vchild}</div>
         </div>
-        <hr></hr>
         {props.children}
       </div>
     </>

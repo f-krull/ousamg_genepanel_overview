@@ -6,10 +6,13 @@ import { Table } from "../components/table";
 import { Routes } from "../shared/routes";
 import { genepanels } from "../shared/sql";
 import { UrlParam } from "../shared/urlParam";
+import "tabulator-tables/dist/css/tabulator.css";
+import "tabulator-tables/dist/css/tabulator_simple.css";
 
 interface GeneCountTree extends genepanels.GeneCount {
   _children?: GeneCountTree[];
   numHitsRel: number;
+  parent?: GeneCountTree;
 }
 
 function GenePanels({ db, hgncIds }: { db: Database; hgncIds: string[] }) {
@@ -24,11 +27,9 @@ function GenePanels({ db, hgncIds }: { db: Database; hgncIds: string[] }) {
     const tree = g.filter((e) => e.isLatest);
     // convert to GeneCountTree
     tree.forEach((r) => {
-      r._children = g.filter(
-        (e) =>
-          e.genepanelName === r.genepanelName &&
-          e.genepanelVersion !== r.genepanelVersion
-      );
+      r._children = g
+        .filter((e) => e.name === r.name && e.version !== r.version)
+        .map((c) => ({ ...c, parent: r }));
     });
     setGeneCounts(tree);
   }, [hgncIds]);
@@ -42,7 +43,7 @@ function GenePanels({ db, hgncIds }: { db: Database; hgncIds: string[] }) {
       options={{
         data: geneCounts,
         height: "60vh",
-        layout: "fitColumns",
+        layout: "fitDataFill",
         columnDefaults: {
           title: "",
         },
@@ -52,22 +53,41 @@ function GenePanels({ db, hgncIds }: { db: Database; hgncIds: string[] }) {
         columns: [
           {
             title: "Gene panel",
-            field: "genepanelName",
+            field: "name",
             formatter: "link",
             formatterParams: {
-              labelField: "genepanelName",
+              labelField: "name",
               url: (e) => {
                 const dRow = e.getRow().getData();
-                return Routes.Genepanel(
-                  dRow.genepanelName,
-                  dRow.genepanelVersion
-                );
+                return Routes.Genepanel({
+                  name: dRow.name,
+                  version: dRow.version,
+                });
               },
             },
           },
           {
-            title: "Gene panel",
-            field: "genepanelVersion",
+            title: "Version",
+            field: "version",
+            formatter: (e) => {
+              if (!e.getRow().getData().parent) {
+                return e.getValue();
+              }
+              const parent: GeneCountTree = e.getRow().getData()
+                .parent as GeneCountTree;
+              //? (e.getValue() as GeneCountTree). : ""
+              const url = Routes.GenepanelDiff(
+                {
+                  name: parent.name,
+                  version: parent.version,
+                },
+                {
+                  name: e.getRow().getData().name,
+                  version: e.getRow().getData().version,
+                }
+              );
+              return `${e.getValue()} (<a href="${url}">compare</a>)`;
+            },
           },
           {
             title: "Date created",
@@ -86,15 +106,15 @@ function GenePanels({ db, hgncIds }: { db: Database; hgncIds: string[] }) {
                 field: "numHits",
               },
               {
-                title: "Relative",
-                field: "numHitsRel",
-                mutator: (value) => value * 100,
-                formatter: (e) => `${e.getValue().toFixed(1)}%`,
-              },
-              {
                 title: "Coverage",
                 field: "numHitsRel",
                 formatter: "progress",
+              },
+              {
+                title: "%",
+                field: "numHitsRel",
+                mutator: (value) => value * 100,
+                formatter: (e) => `${e.getValue().toFixed(1)}%`,
               },
             ],
           },
@@ -110,7 +130,7 @@ function GenesApp(props: any) {
   const hgncIds = urlParams.getList("hgnc_ids") || [];
 
   return (
-    <DbScaffold title="Gene Info">
+    <DbScaffold title="Gene Set Info">
       <DbContext.Consumer>
         {(db) => {
           if (hgncIds.length === 0) {
@@ -118,7 +138,14 @@ function GenesApp(props: any) {
             return <>no HGNC IDs defined</>;
           }
           console.log("DbContext.Consumer render");
-          return <GenePanels db={db} hgncIds={hgncIds} />;
+          return (
+            <>
+              <div className="my-2">
+                <div className="text-muted small fw-bold">Gene Panels</div>
+              </div>
+              <GenePanels db={db} hgncIds={hgncIds} />
+            </>
+          );
         }}
       </DbContext.Consumer>
     </DbScaffold>

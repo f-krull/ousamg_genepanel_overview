@@ -3,68 +3,12 @@ import * as React from "react";
 import { createRoot } from "react-dom/client";
 import { genenames, genepanels } from "../shared/sql";
 import { Routes } from "../shared/routes";
-import { Tabulator, FormatModule, SortModule } from "tabulator-tables";
-import "tabulator-tables/dist/css/tabulator.css";
-import "tabulator-tables/dist/css/tabulator_bootstrap5.css";
 import { DbContext, DbScaffold } from "../components/dbscaffold";
 import { Description } from "../components/description";
 import { UrlParam } from "../shared/urlParam";
-
-function Table({
-  genepanelRows,
-}: {
-  genepanelRows: genepanels.GenepanelEntry[];
-}) {
-  React.useLayoutEffect(() => {
-    Tabulator.registerModule(SortModule);
-    Tabulator.registerModule(FormatModule);
-    var table = new Tabulator("#table", {
-      data: genepanelRows,
-      height: "60vh",
-      layout: "fitColumns",
-      columnDefaults: {
-        title: "",
-      },
-      columns: [
-        {
-          title: "Gene panel",
-          field: "genepanelName",
-          formatter: "link",
-          formatterParams: {
-            labelField: "genepanelName",
-            url: (e) => {
-              const dRow = e.getRow().getData();
-              return Routes.Genepanel(
-                dRow.genepanelName,
-                dRow.genepanelVersion
-              );
-            },
-          },
-        },
-        {
-          title: "Latest version",
-          field: "genepanelVersion",
-        },
-        {
-          title: "Default transcript",
-          field: "transcript",
-        },
-        {
-          title: "Transcript source",
-          field: "transcriptSource",
-        },
-        {
-          title: "Inheritance mode",
-          field: "inheritance",
-        },
-      ],
-    });
-    const redraw = () => table.redraw();
-    window.addEventListener("resize", redraw);
-    return () => window.removeEventListener("resize", redraw);
-  }, []);
-  return <div id="table"></div>;
-}
+import { Table } from "../components/table";
+import "tabulator-tables/dist/css/tabulator.css";
+import "tabulator-tables/dist/css/tabulator_simple.css";
 
 function GeneInfo({ db, hgncId }: { db: Database; hgncId: string }) {
   const genenameEntry = React.useMemo(() => {
@@ -110,7 +54,51 @@ function GeneInfo({ db, hgncId }: { db: Database; hgncId: string }) {
       <div className="my-2">
         <div className="text-muted small fw-bold">Gene Panels</div>
       </div>
-      <Table genepanelRows={genepanelRows || []} />
+      {genepanelRows.length && (
+        <Table
+          options={{
+            data: genepanelRows,
+            height: "60vh",
+            layout: "fitColumns",
+            columnDefaults: {
+              title: "",
+            },
+            columns: [
+              {
+                title: "Gene panel",
+                field: "genepanelName",
+                formatter: "link",
+                formatterParams: {
+                  labelField: "genepanelName",
+                  url: (e) => {
+                    const dRow = e.getRow().getData();
+                    return Routes.Genepanel({
+                      name: dRow.genepanelName,
+                      version: dRow.genepanelVersion,
+                    });
+                  },
+                },
+              },
+              {
+                title: "Latest version",
+                field: "genepanelVersion",
+              },
+              {
+                title: "Default transcript",
+                field: "refseqId",
+              },
+              {
+                title: "Transcript source",
+                field: "transcriptSource",
+              },
+              {
+                title: "Inheritance mode",
+                field: "inheritance",
+              },
+            ],
+          }}
+        />
+      )}
     </>
   );
 }
