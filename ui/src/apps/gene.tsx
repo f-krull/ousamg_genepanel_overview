@@ -9,6 +9,7 @@ import { UrlParam } from "../shared/urlParam";
 import { Table } from "../components/table";
 import "tabulator-tables/dist/css/tabulator.css";
 import "tabulator-tables/dist/css/tabulator_simple.css";
+import { Section } from "../components/section";
 
 function GeneInfo({ db, hgncId }: { db: Database; hgncId: string }) {
   const genenameEntry = React.useMemo(() => {
@@ -30,75 +31,78 @@ function GeneInfo({ db, hgncId }: { db: Database; hgncId: string }) {
 
   return (
     <>
-      <Description k="Gene symbol" v={genenameEntry.symbol} />
-      <Description
-        k="HGNC ID"
-        v={
-          <>
-            {genenameEntry.hgncId}{" "}
-            <small className="text-muted">
-              (
-              <a
-                href={`https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/HGNC:${genenameEntry.hgncId}`}
-                target={"_blank"}
-              >
-                {"\u21AA"} genenames.org
-              </a>
-              )
-            </small>
-          </>
-        }
-      />
-      <Description k="Name" v={genenameEntry.name} />
-      <hr />
-      <div className="my-2">
-        <div className="text-muted small fw-bold">Gene Panels</div>
-      </div>
-      {genepanelRows.length && (
-        <Table
-          options={{
-            data: genepanelRows,
-            height: "60vh",
-            layout: "fitColumns",
-            columnDefaults: {
-              title: "",
-            },
-            columns: [
-              {
-                title: "Gene panel",
-                field: "genepanelName",
-                formatter: "link",
-                formatterParams: {
-                  labelField: "genepanelName",
-                  url: (e) => {
-                    const dRow = e.getRow().getData();
-                    return Routes.Genepanel({
-                      name: dRow.genepanelName,
-                      version: dRow.genepanelVersion,
-                    });
+      <Section title="Gene">
+        <div className="row gy-sm-2">
+          <Description title="Gene symbol">{genenameEntry.symbol}</Description>
+          <Description title="HGNC ID">
+            {
+              <>
+                {genenameEntry.hgncId}{" "}
+                <small className="text-muted">
+                  (
+                  <a
+                    href={`https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/HGNC:${genenameEntry.hgncId}`}
+                    target={"_blank"}
+                  >
+                    {"\u21AA"} genenames.org
+                  </a>
+                  )
+                </small>
+              </>
+            }
+          </Description>
+          <Description title="Name">{genenameEntry.name}</Description>
+        </div>
+      </Section>
+      <Section
+        title={`Gene panels containing ${genenameEntry.symbol}(${genenameEntry.hgncId})`}
+      >
+        {genepanelRows.length && (
+          <Table
+            options={{
+              data: genepanelRows,
+              height: "60vh",
+              layout: "fitColumns",
+              columnDefaults: {
+                title: "",
+              },
+              columns: [
+                {
+                  title: "Gene panel",
+                  field: "genepanelName",
+                  formatter: "link",
+                  formatterParams: {
+                    labelField: "genepanelName",
+                    url: (e) => {
+                      const dRow = e.getRow().getData();
+                      return Routes.Genepanel({
+                        name: dRow.genepanelName,
+                        version: dRow.genepanelVersion,
+                      });
+                    },
                   },
                 },
-              },
-              {
-                title: "Latest version",
-                field: "genepanelVersion",
-              },
-              {
-                title: "Default transcript",
-                field: "refseqId",
-              },
-              {
-                title: "Transcript source",
-                field: "transcriptSource",
-              },
-              {
-                title: "Inheritance mode",
-                field: "inheritance",
-              },
-            ],
-          }}
-        />
-      )}
+                {
+                  title: "Latest version",
+                  field: "genepanelVersion",
+                },
+                {
+                  title: "Default transcript",
+                  field: "refseqId",
+                },
+                {
+                  title: "Transcript source",
+                  field: "transcriptSource",
+                },
+                {
+                  title: "Inheritance mode",
+                  field: "inheritance",
+                },
+              ],
+            }}
+          />
+        )}
+      </Section>
     </>
   );
 }

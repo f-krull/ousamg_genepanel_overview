@@ -157,6 +157,7 @@ export namespace genepanels {
           FROM
             latest_genepanels l
         )
+      ORDER BY genepanel_name, genepanel_version, refseq_id
       `);
     const p = { ":hgnc_id": hgnc_id };
     stmt.bind(p);

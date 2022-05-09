@@ -1,16 +1,16 @@
 import React = require("react");
 
 export function Description({
-  k,
-  v,
+  title,
+  children,
 }: {
-  k: React.ReactNode;
-  v: React.ReactNode;
+  title: React.ReactNode;
+  children: React.ReactNode;
 }) {
   return (
-    <div className="row mb-3">
-      <div className="col-sm-2 text-muted">{k}</div>
-      <div className="col-sm-10">{v}</div>
-    </div>
+    <>
+      <div className="col-sm-5 col-md-2 text-muted">{title}:</div>
+      <div className="col-sm-7 col-md-4">{children}</div>
+    </>
   );
 }

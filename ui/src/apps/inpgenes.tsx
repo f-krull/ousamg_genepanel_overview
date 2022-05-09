@@ -5,6 +5,7 @@ import { createRoot } from "react-dom/client";
 import { genenames } from "../shared/sql";
 import { Routes } from "../shared/routes";
 import { DbContext, DbScaffold } from "../components/dbscaffold";
+import { Section } from "../components/section";
 
 interface GeneLookupStatus {
   [k: string]: {
@@ -42,9 +43,9 @@ function InpGenesApp(props: any) {
     <DbScaffold title="Multi Gene Search" currentPage={MenuPages.searchGenes}>
       <DbContext.Consumer>
         {(db) => (
-          <div className="mb-3 row g-5">
-            <div className="col-6 mb-3">
-              <div className="mb-3">
+          <div className="mb-3 row g-3">
+            <div className="col-12 col-md-6 mb-3">
+              <Section title="Select genes">
                 <label htmlFor="inpGenesymbol" className="form-label my-1">
                   Gene symbols / HGNC IDs:
                 </label>
@@ -91,7 +92,7 @@ function InpGenesApp(props: any) {
                     setGeneLookupStatus(glsUpdated);
                   }}
                 />
-              </div>
+              </Section>
               <div
                 role="button"
                 className="btn btn-primary my-2"
@@ -113,8 +114,8 @@ function InpGenesApp(props: any) {
                 {numFound}/{numSearched} genes found
               </span>
             </div>
-            <div className="col-6">
-              <div className="row">
+            <div className="col-12 col-md-6">
+              <Section title="Preview selection">
                 {Object.values(geneLookupStatus).length > 0 && (
                   <span>Requested genes:</span>
                 )}
@@ -146,7 +147,7 @@ function InpGenesApp(props: any) {
                     })
                     .flat()}
                 </ol>
-              </div>
+              </Section>
             </div>
           </div>
         )}

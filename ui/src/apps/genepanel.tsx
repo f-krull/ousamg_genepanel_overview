@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import { Database } from "sql.js";
 import { DbContext, DbScaffold } from "../components/dbscaffold";
 import { Description } from "../components/description";
+import { Section } from "../components/section";
 import { Routes } from "../shared/routes";
 import { genepanels } from "../shared/sql";
 import { UrlParam } from "../shared/urlParam";
@@ -26,11 +27,15 @@ function GenepanelInfo({
 
   return (
     <>
-      <Description k="Gene panel name" v={genepanelName} />
-      <Description k="Gene panel version" v={genepanelVersion} />
-      <hr />
-      <div className="my-2">
-        <div className="text-muted small fw-bold">Genes</div>
+      <Section title="Gene panel">
+        <div className="row gy-sm-2">
+          <Description title="Gene panel name">{genepanelName}</Description>
+          <Description title="Gene panel version">
+            {genepanelVersion}
+          </Description>
+        </div>
+      </Section>
+      <Section title="Genes">
         <div className="row p-2">
           {genes?.map((e) => (
             <div
@@ -43,7 +48,7 @@ function GenepanelInfo({
             </div>
           ))}
         </div>
-      </div>
+      </Section>
     </>
   );
 }

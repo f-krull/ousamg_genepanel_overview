@@ -8,6 +8,7 @@ import { genepanels } from "../shared/sql";
 import { UrlParam } from "../shared/urlParam";
 import "tabulator-tables/dist/css/tabulator.css";
 import "tabulator-tables/dist/css/tabulator_simple.css";
+import { Section } from "../components/section";
 
 interface GeneCountTree extends genepanels.GeneCount {
   _children?: GeneCountTree[];
@@ -140,10 +141,9 @@ function GenesApp(props: any) {
           console.log("DbContext.Consumer render");
           return (
             <>
-              <div className="my-2">
-                <div className="text-muted small fw-bold">Gene Panels</div>
-              </div>
-              <GenePanels db={db} hgncIds={hgncIds} />
+              <Section title="Gene panels">
+                <GenePanels db={db} hgncIds={hgncIds} />
+              </Section>
             </>
           );
         }}
