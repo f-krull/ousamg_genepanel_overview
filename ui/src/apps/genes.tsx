@@ -18,6 +18,25 @@ interface GeneCountTree extends genepanels.GeneCount {
   parent?: GeneCountTree;
 }
 
+// interface Latest {
+//   isLatest: boolean;
+// }
+
+// function makeTreeIsLatest<T extends Latest>(rows: T[], rowIds: string[]): (T & {_children?: T[], parent?: T})[] {
+//   // convert to tree - start with latest gps as parent rows
+//   const tree: (T & {_children?: T[], parent?: T})[] = rows.filter((r) => r.isLatest);
+//   // convert to GeneCountTree
+//   tree.forEach((r) => {
+//     r._children = rows
+//       .filter((e) => rowIds.every(id => e[id] === r[] && e.version !== r.version)
+//       .map((c) => ({ ...c, parent: r }));
+//   });
+//   return {
+//     ...t,
+//     _children: []
+//   }
+// }
+
 function GenePanels({ db, hgncIds }: { db: Database; hgncIds: string[] }) {
   const [geneCounts, setGeneCounts] = React.useState<GeneCountTree[]>([]);
 

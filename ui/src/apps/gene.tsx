@@ -6,10 +6,15 @@ import { Routes } from "../shared/routes";
 import { DbContext, DbScaffold } from "../components/dbscaffold";
 import { Description } from "../components/description";
 import { UrlParam } from "../shared/urlParam";
-import { Table } from "../components/table";
+import { Table, TableContext } from "../components/table";
 import "tabulator-tables/dist/css/tabulator.css";
 import "tabulator-tables/dist/css/tabulator_simple.css";
 import { Section } from "../components/section";
+
+interface GenepanelEntryTree extends genepanels.GenepanelEntry {
+  _children?: GenepanelEntryTree[];
+  parent?: GenepanelEntryTree;
+}
 
 function GeneInfo({ db, hgncId }: { db: Database; hgncId: string }) {
   const genenameEntry = React.useMemo(() => {
@@ -20,14 +25,26 @@ function GeneInfo({ db, hgncId }: { db: Database; hgncId: string }) {
     return gene;
   }, []);
 
-  const genepanelRows = React.useMemo(() => {
-    const genepanelRows = genepanels.searchLatestByHgncId(db, hgncId);
-    return genepanelRows;
-  }, []);
-
   if (genenameEntry === undefined) {
     return <>no gene found with HGNC ID "{hgncId}"</>;
   }
+
+  const genepanelTree = React.useMemo(() => {
+    const genepanelRows = genepanels.searchByHgncId(db, hgncId);
+    // convert to tree - start with latest gps as parent rows
+    const tree: GenepanelEntryTree[] = genepanelRows.filter((e) => e.isLatest);
+    // convert to GeneCountTree
+    tree.forEach((r) => {
+      r._children = genepanelRows
+        .filter(
+          (e) =>
+            e.genepanelName === r.genepanelName &&
+            e.genepanelVersion !== r.genepanelVersion
+        )
+        .map((c) => ({ ...c, parent: r }));
+    });
+    return tree;
+  }, [hgncId]);
 
   return (
     <>
@@ -57,13 +74,16 @@ function GeneInfo({ db, hgncId }: { db: Database; hgncId: string }) {
       <Section
         title={`Gene panels containing ${genenameEntry.symbol} (${genenameEntry.hgncId})`}
       >
-        {genepanelRows.length && (
+        {genepanelTree.length && (
           <Table
             domId="genepanelTable"
             options={{
-              data: genepanelRows,
+              data: genepanelTree,
               height: "60vh",
               layout: "fitColumns",
+              dataTree: true,
+              dataTreeChildIndent: 25,
+              dataTreeStartExpanded: true,
               columnDefaults: {
                 title: "",
               },
@@ -84,12 +104,32 @@ function GeneInfo({ db, hgncId }: { db: Database; hgncId: string }) {
                   },
                 },
                 {
-                  title: "Latest version",
+                  title: "Version",
                   field: "genepanelVersion",
+                  formatter: (e) => {
+                    if (!e.getRow().getData().parent) {
+                      return e.getValue();
+                    }
+                    const parent: GenepanelEntryTree = e.getRow().getData()
+                      .parent as GenepanelEntryTree;
+                    //? (e.getValue() as GeneCountTree). : ""
+                    const url = Routes.GenepanelDiff(
+                      {
+                        name: e.getRow().getData().genepanelName,
+                        version: e.getRow().getData().genepanelVersion,
+                      },
+                      {
+                        name: parent.genepanelName,
+                        version: parent.genepanelVersion,
+                      }
+                    );
+                    return `${e.getValue()} (<a href="${url}">diff</a>)`;
+                  },
                 },
                 {
                   title: "Default transcript",
-                  field: "refseqId",
+                  field: "refseqIds",
+                  mutator: (value) => value.join(", "),
                 },
                 {
                   title: "Transcript source",
@@ -101,7 +141,37 @@ function GeneInfo({ db, hgncId }: { db: Database; hgncId: string }) {
                 },
               ],
             }}
-          />
+          >
+            <TableContext.Consumer>
+              {(table) => (
+                <div className="row g-1 justify-content-end mb-2">
+                  <div className="col-12 col-sm-2 col-lg-1">
+                    <div
+                      className="btn btn-outline-primary btn-sm w-100"
+                      itemType="button"
+                      onClick={() => {
+                        table.getRows().forEach((r) => r.treeExpand());
+                      }}
+                    >
+                      {" "}
+                      Expand
+                    </div>
+                  </div>
+                  <div className="col-12 col-sm-2 col-lg-1">
+                    <div
+                      className="btn btn-outline-primary btn-sm w-100"
+                      itemType="button"
+                      onClick={() => {
+                        table.getRows().forEach((r) => r.treeCollapse());
+                      }}
+                    >
+                      Collapse
+                    </div>
+                  </div>
+                </div>
+              )}
+            </TableContext.Consumer>
+          </Table>
         )}
       </Section>
     </>

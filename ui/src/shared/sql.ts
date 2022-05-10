@@ -116,12 +116,13 @@ export namespace genepanels {
   export interface GenepanelEntry {
     genepanelName: string;
     genepanelVersion: string;
-    refseqId: string;
+    refseqIds: string[];
     transcriptSource: string;
     inheritance: string;
+    isLatest: boolean;
   }
 
-  export function searchLatestByHgncId(
+  export function searchByHgncId(
     db: Database,
     hgnc_id: string
   ): GenepanelEntry[] {
@@ -135,11 +136,16 @@ export namespace genepanels {
           r.hgnc_id = :hgnc_id
       )
       SELECT
-        genepanel_name AS genepanelName
-        ,genepanel_version AS genepanelVersion
-        ,refseq_id AS refseqId
-        ,transcript_source AS transcriptSource
-        ,inh_mode
+        genepanel_name
+        ,genepanel_version
+        ,GROUP_CONCAT(refseq_id) AS refseq_ids
+        ,transcript_source
+        ,GROUP_CONCAT(inh_mode) AS inh_mode
+        ,CASE
+          WHEN (genepanel_name, genepanel_version) in (select name, version from latest_genepanels)
+            then 1
+            else 0
+          END AS is_latest
       FROM
         genepanel_regions g
       WHERE
@@ -149,26 +155,32 @@ export namespace genepanels {
           FROM
             refseq_ids
         )
-        AND (g.genepanel_name,g.genepanel_version) IN (
-          SELECT
-            l.name,
-            l.version
-          FROM
-            latest_genepanels l
-        )
-      ORDER BY genepanel_name, genepanel_version, refseq_id
+      GROUP BY genepanel_name, genepanel_version
+      ORDER BY genepanel_name, genepanel_version
       `);
     const p = { ":hgnc_id": hgnc_id };
     stmt.bind(p);
     const r: GenepanelEntry[] = [];
     while (stmt.step()) {
       const row = stmt.getAsObject();
-      r.push(row as unknown as GenepanelEntry);
+      r.push({
+        genepanelName: row.genepanel_name as string,
+        genepanelVersion: row.genepanel_version as string,
+        refseqIds: (row.refseq_ids as string).split(","),
+        transcriptSource: row.transcript_source as string,
+        inheritance: row.inh_mode as string,
+        isLatest: (row.is_latest as number) ? true : false,
+      });
     }
     return r;
   }
 
-  export interface GenepanelGeneEntry extends GenepanelEntry {
+  export interface GenepanelGeneEntry {
+    genepanelName: string;
+    genepanelVersion: string;
+    refseqId: string;
+    transcriptSource: string;
+    inheritance: string;
     hgncId: string;
     geneSymbol: string;
   }
@@ -181,7 +193,7 @@ export namespace genepanels {
       SELECT distinct
         g2.hgnc_id
         ,g2.symbol
-        ,g.refseq_id
+        ,refseq_id
         ,transcript_source
         ,genepanel_name
         ,genepanel_version
