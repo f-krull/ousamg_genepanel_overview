@@ -1,7 +1,7 @@
 import { Database } from "sql.js";
 import * as React from "react";
 import { createRoot } from "react-dom/client";
-import { genenames, genepanels } from "../shared/sql";
+import { geneinfo, genepanels } from "../shared/sql";
 import { Routes } from "../shared/routes";
 import { DbContext, DbScaffold } from "../components/dbscaffold";
 import { Description } from "../components/description";
@@ -10,6 +10,7 @@ import { Table, TableContext } from "../components/table";
 import "tabulator-tables/dist/css/tabulator.css";
 import "tabulator-tables/dist/css/tabulator_simple.css";
 import { Section } from "../components/section";
+import { formatCoverage } from "../shared/format";
 
 interface GenepanelEntryTree extends genepanels.GenepanelEntry {
   _children?: GenepanelEntryTree[];
@@ -17,15 +18,15 @@ interface GenepanelEntryTree extends genepanels.GenepanelEntry {
 }
 
 function GeneInfo({ db, hgncId }: { db: Database; hgncId: string }) {
-  const genenameEntry = React.useMemo(() => {
+  const geneinfoEntry = React.useMemo(() => {
     // get genes by ID
-    const genes = genenames.searchByHgncId(db, hgncId);
+    const genes = geneinfo.searchByHgncId(db, hgncId);
     // select first gene
     const gene = genes[0];
     return gene;
   }, []);
 
-  if (genenameEntry === undefined) {
+  if (geneinfoEntry === undefined) {
     return <>no gene found with HGNC ID "{hgncId}"</>;
   }
 
@@ -50,15 +51,15 @@ function GeneInfo({ db, hgncId }: { db: Database; hgncId: string }) {
     <>
       <Section title="Gene">
         <div className="row gy-sm-2">
-          <Description title="Gene symbol">{genenameEntry.symbol}</Description>
+          <Description title="Gene symbol">{geneinfoEntry.symbol}</Description>
           <Description title="HGNC ID">
             {
               <>
-                {genenameEntry.hgncId}{" "}
+                {geneinfoEntry.hgncId}{" "}
                 <small className="text-muted">
                   (
                   <a
-                    href={`https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/HGNC:${genenameEntry.hgncId}`}
+                    href={`https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/HGNC:${geneinfoEntry.hgncId}`}
                     target={"_blank"}
                   >
                     {"\u21AA"} genenames.org
@@ -68,19 +69,27 @@ function GeneInfo({ db, hgncId }: { db: Database; hgncId: string }) {
               </>
             }
           </Description>
-          <Description title="Name">{genenameEntry.name}</Description>
+          <Description title="Name">{geneinfoEntry.name}</Description>
+          <Description title="Coverage">
+            <span className="me-3">
+              <span className="small">WGS</span>{" "}
+              {formatCoverage(geneinfoEntry.coverageWgs)}
+            </span>
+            <span className="small">WES</span>{" "}
+            {formatCoverage(geneinfoEntry.coverageWes)}
+          </Description>
         </div>
       </Section>
       <Section
-        title={`Gene panels containing ${genenameEntry.symbol} (${genenameEntry.hgncId})`}
+        title={`Gene panels containing ${geneinfoEntry.symbol} (${geneinfoEntry.hgncId})`}
       >
         {genepanelTree.length && (
           <Table
             domId="genepanelTable"
             options={{
               data: genepanelTree,
-              height: "60vh",
-              layout: "fitColumns",
+              maxHeight: "60vh",
+              layout: "fitDataFill",
               dataTree: true,
               dataTreeChildIndent: 25,
               dataTreeStartExpanded: true,

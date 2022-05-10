@@ -4,13 +4,14 @@ import { Database } from "sql.js";
 import { DbContext, DbScaffold } from "../components/dbscaffold";
 import { TableContext, Table } from "../components/table";
 import { Routes } from "../shared/routes";
-import { genenames, genepanels } from "../shared/sql";
+import { geneinfo, genenames, genepanels } from "../shared/sql";
 import { UrlParam } from "../shared/urlParam";
 import "tabulator-tables/dist/css/tabulator.css";
 import "tabulator-tables/dist/css/tabulator_simple.css";
 import { Section } from "../components/section";
 import { formatDate } from "../shared/format";
 import { cols } from "../shared/tableColumns";
+import { GeneList } from "../components/genelist";
 
 interface GeneCountTree extends genepanels.GeneCount {
   _children?: GeneCountTree[];
@@ -66,7 +67,7 @@ function GenePanels({ db, hgncIds }: { db: Database; hgncIds: string[] }) {
       domId="genepanels"
       options={{
         data: geneCounts,
-        height: "60vh",
+        maxHeight: "60vh",
         layout: "fitDataFill",
         columnDefaults: {
           title: "",
@@ -104,6 +105,7 @@ function GenePanels({ db, hgncIds }: { db: Database; hgncIds: string[] }) {
               {
                 title: "Total",
                 field: "numHits",
+                hozAlign: "right",
               },
               {
                 title: "Coverage",
@@ -114,6 +116,7 @@ function GenePanels({ db, hgncIds }: { db: Database; hgncIds: string[] }) {
                 title: "%",
                 field: "numHitsRel",
                 mutator: (value) => value * 100,
+                hozAlign: "right",
                 formatter: (e) => `${e.getValue().toFixed(1)}%`,
               },
             ],
@@ -151,24 +154,6 @@ function GenePanels({ db, hgncIds }: { db: Database; hgncIds: string[] }) {
         )}
       </TableContext.Consumer>
     </Table>
-  );
-}
-
-function GeneList({ db, hgncIds }: { db: Database; hgncIds: string[] }) {
-  const geneEntries: genenames.GenenameEntry[] = hgncIds
-    .map((id) => genenames.searchByHgncId(db, id))
-    .flat()
-    .sort((a, b) => a.symbol.localeCompare(b.symbol));
-  return (
-    <div className="row">
-      {geneEntries.map((e) => (
-        <div key={e.hgncId} className="col-3 col-sm-3 col-md-2">
-          <a href={Routes.Gene(e.hgncId)}>
-            {e.symbol} ({e.hgncId})
-          </a>
-        </div>
-      ))}
-    </div>
   );
 }
 

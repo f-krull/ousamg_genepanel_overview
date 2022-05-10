@@ -81,6 +81,48 @@ export namespace genenames {
 
 /*----------------------------------------------------------------------------*/
 
+export namespace geneinfo {
+  export interface GeneInfoEntry extends genenames.GenenameEntry {
+    coverageWes: number;
+    coverageWgs: number;
+  }
+
+  export function searchByHgncId(
+    db: Database,
+    hgncId: string
+  ): GeneInfoEntry[] {
+    const stmt = db.prepare(`
+      SELECT distinct
+        g.hgnc_id
+        ,symbol
+        ,name
+        ,MAX(CASE WHEN type = "wgs" THEN coverage END) as coverage_wgs
+        ,MAX(CASE WHEN type = "wes" THEN coverage END) as coverage_wes
+      FROM genenames g
+      JOIN gene_coverage c on g.hgnc_id = c.hgnc_id
+      WHERE g.hgnc_id = :hgncId
+      GROUP BY g.hgnc_id, symbol ,name
+      ORDER BY symbol
+      `);
+    const p = { ":hgncId": hgncId };
+    stmt.bind(p);
+    const r: GeneInfoEntry[] = [];
+    while (stmt.step()) {
+      const row = stmt.getAsObject();
+      r.push({
+        hgncId: row.hgnc_id as string,
+        symbol: row.symbol as string,
+        name: row.name as string,
+        coverageWes: row.coverage_wes as number,
+        coverageWgs: row.coverage_wgs as number,
+      });
+    }
+    return r;
+  }
+}
+
+/*----------------------------------------------------------------------------*/
+
 export namespace version {
   export interface VersionEntry {
     sha1: string;

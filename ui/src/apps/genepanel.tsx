@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import { Database } from "sql.js";
 import { DbContext, DbScaffold } from "../components/dbscaffold";
 import { Description } from "../components/description";
+import { GeneList } from "../components/genelist";
 import { Section } from "../components/section";
 import { formatDate, naSymbol } from "../shared/format";
 import { Routes } from "../shared/routes";
@@ -92,18 +93,7 @@ function GenepanelInfo({
         </div>
       </Section>
       <Section title="Genes">
-        <div className="row p-2">
-          {genes?.map((e) => (
-            <div
-              key={e.hgncId}
-              className="col-4 col-lg-2 col-md-3 text-truncate"
-            >
-              <a href={Routes.Gene(e.hgncId)}>
-                {e.symbol} ({e.hgncId})
-              </a>
-            </div>
-          ))}
-        </div>
+        <GeneList db={db} hgncIds={genes?.map((e) => e.hgncId) || []} />
       </Section>
     </>
   );
