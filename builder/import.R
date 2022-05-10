@@ -169,31 +169,36 @@ import_transcripts <- function(db, data_path, genepanel_id) {
     )
   }
   DBI::dbClearResult(rs)
-
   # import regions
   rs <- DBI::dbSendStatement(db,
     'INSERT INTO genepanel_regions (
       genepanel_name
       , genepanel_version
       , refseq_id
+      , custom_id
       , transcript_source
       , inh_mode
     ) VALUES (
       :genepanel_name
       , :genepanel_version
       , :refseq_id
+      , :custom_id
       , :transcript_source
       , :inh_mode
     )')
   for (i in 1:nrow(tsdata)) {
-    DBI::dbBind(rs, params = list(
-        genepanel_name=genepanel_name
-        , genepanel_version=genepanel_version
-        , refseq_id=tsdata[i,colRefSeq]
-        , transcript_source=tsdata[i,colSource]
-        , inh_mode=tsdata[i,colInheritance]
-      )
+    params = list(
+      genepanel_name=genepanel_name
+      , genepanel_version=genepanel_version
+      , refseq_id=tsdata[i,colRefSeq]
+      , custom_id=list(NULL)
+      , transcript_source=tsdata[i,colSource]
+      , inh_mode=tsdata[i,colInheritance]
     )
+    # cat("test 2\n")
+    # cat(capture.output(str(params)))
+    # cat("\n")
+    DBI::dbBind(rs, params)
   }
   DBI::dbClearResult(rs)
 }
