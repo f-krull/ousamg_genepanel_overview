@@ -12,11 +12,24 @@ WHERE
     FROM ids
   );
 
+-- prune gene coverage
+
+WITH ids AS (
+  SELECT DISTINCT r.hgnc_id
+  FROM refseq r
+  WHERE r.hgnc_id NOT NULL
+)
+DELETE FROM gene_coverage
+ WHERE
+   hgnc_id NOT IN (
+     SELECT hgnc_id
+     FROM ids
+   );
+
 -- prune hgnc
 
 WITH ids AS (
-  SELECT
-    DISTINCT r.hgnc_id
+  SELECT DISTINCT r.hgnc_id
   FROM refseq r
   WHERE r.hgnc_id NOT NULL
 )
@@ -45,9 +58,12 @@ CREATE VIEW latest_genepanels AS
         )
     ELSE
       -- use version otherwise
-      l.version in (SELECT max(gp.version) FROM  genepanels gp WHERE gp.name= l.name)
+      l.version in (SELECT max(gp.version) FROM genepanels gp WHERE gp.name= l.name)
     END
   GROUP BY name;
+
+
+-- shrink file
 
 VACUUM;
 
@@ -61,3 +77,9 @@ CREATE INDEX idx_refseq_hgnc_id ON refseq(hgnc_id);
 CREATE INDEX idx_genepanelregions_refseq_id ON genepanel_regions(refseq_id);
 
 CREATE INDEX idx_genepanelregions_gpname_pversion ON genepanel_regions(genepanel_name, genepanel_version);
+
+CREATE INDEX idx_gene_coverage_coverage ON gene_coverage(coverage);
+
+CREATE INDEX idx_gene_coverage_type ON gene_coverage('type');
+
+CREATE INDEX idx_gene_coverage_hgnc_id ON gene_coverage(hgnc_id);

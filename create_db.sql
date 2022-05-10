@@ -53,3 +53,11 @@ CREATE TABLE genenames (
   ,'name' text
   ,PRIMARY KEY (hgnc_id)
 );
+
+CREATE TABLE gene_coverage (
+  hgnc_id text not null
+  ,coverage float
+  ,'type' TEXT
+  ,PRIMARY KEY (hgnc_id, 'type')
+  ,FOREIGN KEY (hgnc_id) REFERENCES genenames(hgnc_id)
+);

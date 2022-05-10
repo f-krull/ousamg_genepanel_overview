@@ -111,6 +111,37 @@ import_genenames <- function(db, file_path) {
   DBI::dbClearResult(rs)
 }
 
+import_coverage <- function(db, file_path, type) {
+  cat(sprintf("importing coverage %s\n", type))
+  colHgncId    <- "gene.id"
+  colCoverage  <- "Mean"
+  #  [4] "Status"            "Previous.symbols"  "Alias.symbols"
+  #  [7] "Chromosome"        "Accession.numbers" "RefSeq.IDs"
+  # [10] "Alias.names"
+  d <- read.table(file_path, sep="\t", header=T, quote="")
+  # patch first col ("HGNC:11297" -> "11297")
+  d[,colCoverage] <- sub("%","", d[,colCoverage])
+  rs <- DBI::dbSendStatement(db,
+    'INSERT INTO gene_coverage (
+      hgnc_id
+      , coverage
+      , type
+    ) VALUES (
+      :hgnc_id
+      , :coverage
+      , :type
+    )')
+  for (i in 1:nrow(d)) {
+    params = list(
+      hgnc_id=d[i,colHgncId]
+      , coverage=as.numeric(d[i,colCoverage])/100
+      , type=type
+    )
+    DBI::dbBind(rs, params)
+  }
+  DBI::dbClearResult(rs)
+}
+
 import_refseq <- function(db, file_path) {
   cat("importing refseq\n")
   colHgncId    <- "HGNC.ID"
@@ -245,6 +276,8 @@ invisible(
 #-------------------------------------------------------------------------------
 
 import_genenames(db, "dbs/genenames.tsv")
+import_coverage(db, "covdata/wgs/wgs_summary_coverage_genes_10x.tsv", "wgs")
+import_coverage(db, "covdata/wes/wes_summary_coverage_genes_10x.tsv", "wes")
 import_refseq(db, "dbs/genenames.tsv")
 # read genepanels
 
