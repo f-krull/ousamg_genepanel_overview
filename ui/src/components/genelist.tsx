@@ -23,12 +23,12 @@ function RangeInput({
 
   return (
     <div className="row">
-      <div className="col-2">
+      <div className="col-4 text-end">
         <label htmlFor="inpWes" className="form-label">
           {title}
         </label>
       </div>
-      <div className="col-6">
+      <div className="col-4">
         <input
           type="range"
           className="form-range"
@@ -130,7 +130,7 @@ export function GeneList({ db, hgncIds }: { db: Database; hgncIds: string[] }) {
             <div className="row g-1 justify-content-end mb-2 gx-3">
               <div className="col-12 col-md-6 col-lg-4">
                 <RangeInput
-                  title="WGS"
+                  title="min. WGS"
                   initialValue={0}
                   onChange={(e) => {
                     const fn = { ...filter };
@@ -142,7 +142,7 @@ export function GeneList({ db, hgncIds }: { db: Database; hgncIds: string[] }) {
               </div>
               <div className="col-12 col-md-6 col-lg-4">
                 <RangeInput
-                  title="WES"
+                  title="min. WES"
                   initialValue={0}
                   onChange={(e) => {
                     const fn = { ...filter };
