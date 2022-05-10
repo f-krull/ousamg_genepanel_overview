@@ -100,7 +100,7 @@ function GenePanels({ db, hgncIds }: { db: Database; hgncIds: string[] }) {
           cols.genepanelDateCreated,
           {
             //column group
-            title: "Num hits",
+            title: "Num. hits",
             columns: [
               {
                 title: "Total",
@@ -108,9 +108,10 @@ function GenePanels({ db, hgncIds }: { db: Database; hgncIds: string[] }) {
                 hozAlign: "right",
               },
               {
-                title: "Coverage",
+                title: "",
                 field: "numHitsRel",
                 formatter: "progress",
+                minWidth: 80,
               },
               {
                 title: "%",
