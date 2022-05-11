@@ -12,6 +12,7 @@ import { Section } from "../components/section";
 import { cols } from "../shared/tableColumns";
 import { GeneList } from "../components/genelist";
 import { Tabulator } from "tabulator-tables";
+import { DownloadTable } from "../components/downloadtable";
 
 interface GeneCountTree extends genepanels.GeneCount {
   _children?: GeneCountTree[];
@@ -153,6 +154,13 @@ function GenePanels({ db, hgncIds }: { db: Database; hgncIds: string[] }) {
                   >
                     Collapse
                   </div>
+                </div>
+                <div className="col-12 col-sm-2">
+                  <DownloadTable
+                    table={table}
+                    db={db}
+                    fn={`genepanel-overlap`}
+                  />
                 </div>
               </div>
             </>

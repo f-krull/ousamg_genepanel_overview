@@ -85,7 +85,6 @@ function GenepanelInfo({
                 {" "}
                 <a
                   role="button"
-                  // className="ms-2 badge bg-secondary text-light text-decoration-none"
                   className="btn btn-outline-secondary btn-sm small py-0"
                   href={Routes.GenepanelDiff(
                     otherGenepanels[0],

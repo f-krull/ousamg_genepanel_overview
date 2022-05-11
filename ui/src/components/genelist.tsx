@@ -4,6 +4,7 @@ import { Tabulator } from "tabulator-tables";
 import { formatCoverage, formatSegdup } from "../shared/format";
 import { Routes } from "../shared/routes";
 import { geneinfo } from "../shared/sql";
+import { DownloadTable } from "./downloadtable";
 import { Table, TableContext } from "./table";
 
 function RangeInput({
@@ -172,7 +173,7 @@ export function GeneList({
       <TableContext.Consumer>
         {(table) => {
           return (
-            <div className="row g-1 justify-content-end mb-2 gx-3">
+            <div className="row g-1 justify-content-start mb-2 gx-3">
               <div className="col-12 col-md-6 col-lg-4">
                 <RangeInput
                   title="min. WGS"
@@ -184,7 +185,7 @@ export function GeneList({
                   }}
                 />
               </div>
-              <div className="col-12 col-md-6 col-lg-4">
+              <div className="col-12 col-md-6 col-lg-4 me-auto">
                 <RangeInput
                   title="min. WES"
                   initialValue={0}
@@ -194,6 +195,9 @@ export function GeneList({
                     updateFilter(fn, table);
                   }}
                 />
+              </div>
+              <div className="col-12 col-sm-2">
+                <DownloadTable table={table} db={db} fn={`genes`} />
               </div>
             </div>
           );

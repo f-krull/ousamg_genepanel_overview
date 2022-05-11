@@ -1,7 +1,7 @@
 import { Database } from "sql.js";
 import * as React from "react";
 import { createRoot } from "react-dom/client";
-import { geneinfo, genepanels } from "../shared/sql";
+import { geneinfo, genepanels, version } from "../shared/sql";
 import { Routes } from "../shared/routes";
 import { DbContext, DbScaffold } from "../components/dbscaffold";
 import { Description } from "../components/description";
@@ -10,7 +10,9 @@ import { Table, TableContext } from "../components/table";
 import "tabulator-tables/dist/css/tabulator.css";
 import "tabulator-tables/dist/css/tabulator_simple.css";
 import { Section } from "../components/section";
-import { formatCoverage, formatSegdup } from "../shared/format";
+import { formatCoverage, formatDateFn, formatSegdup } from "../shared/format";
+import { DownloadModule } from "tabulator-tables";
+import { DownloadTable } from "../components/downloadtable";
 
 interface GenepanelEntryTree extends genepanels.GenepanelEntry {
   _children?: GenepanelEntryTree[];
@@ -184,6 +186,9 @@ function GeneInfo({ db, hgncId }: { db: Database; hgncId: string }) {
                     >
                       Collapse
                     </div>
+                  </div>
+                  <div className="col-12 col-sm-2">
+                    <DownloadTable table={table} db={db} fn={`gene`} />
                   </div>
                 </div>
               )}

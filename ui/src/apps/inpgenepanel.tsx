@@ -2,6 +2,7 @@ import React = require("react");
 import { createRoot } from "react-dom/client";
 import { Database } from "sql.js";
 import { DbContext, DbScaffold } from "../components/dbscaffold";
+import { DownloadTable } from "../components/downloadtable";
 import { MenuPages } from "../components/scaffold";
 import { Section } from "../components/section";
 import { Table, TableContext } from "../components/table";
@@ -51,7 +52,7 @@ function GenepanelList({ db }: { db: Database }) {
             >
               Filter
             </label>
-            <div className="col-7 col-sm-4">
+            <div className="col-7 col-sm-4 me-auto">
               <input
                 type="text"
                 className="form-control form-control-sm"
@@ -62,6 +63,9 @@ function GenepanelList({ db }: { db: Database }) {
                   table.setData(getTableData(e.currentTarget.value));
                 }}
               />
+            </div>
+            <div className="col-12 col-sm-2">
+              <DownloadTable table={table} db={db} fn={`genepanels`} />
             </div>
           </div>
         )}
