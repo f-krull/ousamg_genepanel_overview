@@ -1,6 +1,8 @@
 import React = require("react");
 import { Database } from "sql.js";
 import { Tabulator } from "tabulator-tables";
+import { formatCoverage, formatSegdup } from "../shared/format";
+import { Routes } from "../shared/routes";
 import { geneinfo } from "../shared/sql";
 import { Table, TableContext } from "./table";
 
@@ -54,7 +56,15 @@ interface Filter {
   wgsMin: number;
 }
 
-export function GeneList({ db, hgncIds }: { db: Database; hgncIds: string[] }) {
+export function GeneList({
+  db,
+  hgncIds,
+  onUpdateFilter,
+}: {
+  db: Database;
+  hgncIds: string[];
+  onUpdateFilter?: (includedHgncIds: string[]) => void;
+}) {
   const [filter, setFilter] = React.useState<Filter>({
     wesMin: 0,
     wgsMin: 0,
@@ -83,6 +93,15 @@ export function GeneList({ db, hgncIds }: { db: Database; hgncIds: string[] }) {
     });
   };
 
+  const updateFilter = (filter: Filter, table: Tabulator) => {
+    setFilter(filter);
+    const includedGenes = getGeneEntriesFiltered(geneEntries, filter);
+    table.setData(includedGenes);
+    if (onUpdateFilter) {
+      onUpdateFilter(includedGenes.map((e) => e.hgncId));
+    }
+  };
+
   return (
     <Table
       domId="geneListTable"
@@ -94,6 +113,14 @@ export function GeneList({ db, hgncIds }: { db: Database; hgncIds: string[] }) {
           {
             title: "HGNC ID",
             field: "hgncId",
+            formatter: "link",
+            formatterParams: {
+              labelField: "hgncId",
+              url: (e) => {
+                const dRow = e.getRow().getData() as geneinfo.GeneInfoEntry;
+                return Routes.Gene(dRow.hgncId);
+              },
+            },
           },
           {
             title: "Symbol",
@@ -111,13 +138,31 @@ export function GeneList({ db, hgncIds }: { db: Database; hgncIds: string[] }) {
                 title: "WGS",
                 field: "coverageWgs",
                 hozAlign: "right",
-                formatter: (e) => `${(e.getValue() * 100).toFixed(1)}%`,
+                formatter: (e) => formatCoverage(e.getValue()),
               },
               {
                 title: "WES",
                 field: "coverageWes",
                 hozAlign: "right",
-                formatter: (e) => `${(e.getValue() * 100).toFixed(1)}%`,
+                formatter: (e) => formatCoverage(e.getValue()),
+              },
+            ],
+          },
+          {
+            //column group
+            title: "Seg. duplication",
+            columns: [
+              {
+                title: "WGS",
+                field: "segdupWgs",
+                hozAlign: "right",
+                formatter: (e) => formatSegdup(e.getValue()),
+              },
+              {
+                title: "WES",
+                field: "segdupWes",
+                hozAlign: "right",
+                formatter: (e) => formatSegdup(e.getValue()),
               },
             ],
           },
@@ -133,10 +178,9 @@ export function GeneList({ db, hgncIds }: { db: Database; hgncIds: string[] }) {
                   title="min. WGS"
                   initialValue={0}
                   onChange={(e) => {
-                    const fn = { ...filter };
+                    const fn = { ...filter }; // immutable update
                     fn.wgsMin = e / 100;
-                    setFilter(fn);
-                    table.setData(getGeneEntriesFiltered(geneEntries, fn));
+                    updateFilter(fn, table);
                   }}
                 />
               </div>
@@ -145,10 +189,9 @@ export function GeneList({ db, hgncIds }: { db: Database; hgncIds: string[] }) {
                   title="min. WES"
                   initialValue={0}
                   onChange={(e) => {
-                    const fn = { ...filter };
+                    const fn = { ...filter }; // immutable update
                     fn.wesMin = e / 100;
-                    setFilter(fn);
-                    table.setData(getGeneEntriesFiltered(geneEntries, fn));
+                    updateFilter(fn, table);
                   }}
                 />
               </div>

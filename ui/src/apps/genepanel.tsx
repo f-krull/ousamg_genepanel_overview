@@ -19,12 +19,16 @@ function GenepanelInfo({
   genepanelVersion: string;
   db: Database;
 }) {
-  const genes: genepanels.Gene[] | undefined = React.useMemo(() => {
-    return genepanels.searchGenesByNameVersion(
+  const genes: genepanels.Gene[] = React.useMemo(() => {
+    const g = genepanels.searchGenesByNameVersion(
       db,
       genepanelName,
       genepanelVersion
     );
+    if (g === undefined) {
+      throw Error(`no genes found for ${genepanelName} ${genepanelVersion}`);
+    }
+    return g;
   }, [genepanelName, genepanelVersion]);
 
   const gps = React.useMemo(() => genepanels.getGenepanels(db), []).filter(
@@ -41,6 +45,11 @@ function GenepanelInfo({
   const latestGenepanel = React.useMemo(
     () => gps.filter((g) => g.isLatest)[0],
     []
+  );
+
+  // gets changed by filter
+  const [numShownGenes, setNumShownGenes] = React.useState<number>(
+    genes.length
   );
 
   return (
@@ -90,10 +99,23 @@ function GenepanelInfo({
               ""
             )}
           </Description>
+          <Description title="Num. transcripts">
+            {currentGenepanel.numRefseq}
+          </Description>
         </div>
       </Section>
-      <Section title="Genes">
-        <GeneList db={db} hgncIds={genes?.map((e) => e.hgncId) || []} />
+      <Section
+        title={`Genes (${
+          numShownGenes !== genes.length ? `showing ${numShownGenes}/` : ""
+        }${genes.length})`}
+      >
+        <GeneList
+          db={db}
+          hgncIds={genes?.map((e) => e.hgncId) || []}
+          onUpdateFilter={(e) => {
+            setNumShownGenes(e.length);
+          }}
+        />
       </Section>
     </>
   );

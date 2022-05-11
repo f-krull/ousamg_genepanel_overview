@@ -34,6 +34,11 @@ function GenepanelList({ db }: { db: Database }) {
           cols.genepanelName,
           cols.genepanelVersion,
           cols.genepanelDateCreated,
+          {
+            title: "Num. transcripts",
+            field: "numRefseq",
+            hozAlign: "right",
+          },
         ],
       }}
     >

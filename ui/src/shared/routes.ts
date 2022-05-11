@@ -1,7 +1,7 @@
 import { genepanels } from "../shared/sql";
 
 export namespace Routes {
-  export const Home = "./index.html";
+  export const Home = "./inpgene.html";
   export const InpGenes = "./inpgenes.html";
   export const InpGenepanel = "./inpgenepanel.html";
   const _Gene = "./gene.html";
@@ -26,7 +26,7 @@ export namespace Routes {
     {
     }
     if (!a || !b) {
-      // too conservative
+      // actually too conservative
       return _GenepanelDiff;
     }
     return `${_GenepanelDiff}?a_name=${encodeURIComponent(

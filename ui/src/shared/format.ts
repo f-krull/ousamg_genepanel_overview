@@ -7,4 +7,6 @@ export const formatCoverage = (c: number | undefined): string => {
   return `${(c * 100).toFixed(1)}%`;
 };
 
+export const formatSegdup = formatCoverage;
+
 export const naSymbol = "-";

@@ -33,11 +33,13 @@ export function Table({
   domId,
   children,
   className,
+  onCreated,
 }: {
   options: Tabulator.Options;
   children?: React.ReactNode;
   domId: string;
   className?: string;
+  onCreated?: (t: Tabulator) => void;
 }) {
   const [table, setTable] = React.useState<Tabulator>();
 
@@ -52,6 +54,9 @@ export function Table({
     Tabulator.registerModule(ResizeColumnsModule);
     var t = new Tabulator(`#${domId}`, options);
     setTable(t);
+    if (onCreated) {
+      onCreated(t);
+    }
     const redraw = () => t.redraw();
     window.addEventListener("resize", redraw);
     return () => window.removeEventListener("resize", redraw);

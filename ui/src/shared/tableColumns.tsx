@@ -1,5 +1,5 @@
 import { Tabulator } from "tabulator-tables";
-import { formatDate } from "./format";
+import { formatDate, naSymbol } from "./format";
 import { Routes } from "./routes";
 
 export const cols: { [k: string]: Tabulator.ColumnDefinition } = {
@@ -21,27 +21,11 @@ export const cols: { [k: string]: Tabulator.ColumnDefinition } = {
   genepanelVersion: {
     title: "Version",
     field: "version",
-    // formatter: (e) => {
-    //   if (!e.getRow().getData().parent) {
-    //     return e.getValue();
-    //   }
-    //   const parent: GeneCountTree = e.getRow().getData()
-    //     .parent as GeneCountTree;
-    //   //? (e.getValue() as GeneCountTree). : ""
-    //   const url = Routes.GenepanelDiff(
-    //     {
-    //       name: e.getRow().getData().name,
-    //       version: e.getRow().getData().version,
-    //     },
-    //     parent
-    //   );
-    //   return `${e.getValue()} (<a href="${url}">diff</a>)`;
-    // },
   },
   genepanelDateCreated: {
     title: "Date created",
     field: "dateCreated",
     formatter: (e: any) =>
-      e.getValue() === undefined ? "" : formatDate(e.getValue() as Date),
+      e.getValue() === undefined ? naSymbol : formatDate(e.getValue() as Date),
   },
 };

@@ -1,5 +1,12 @@
 import { Database, ParamsObject } from "sql.js";
 
+function nullToUndefined<T>(v: any | null): T | undefined {
+  if (v === null) {
+    return undefined;
+  }
+  return v as T;
+}
+
 export namespace genenames {
   export interface GenenameEntry {
     symbol: string;
@@ -83,8 +90,10 @@ export namespace genenames {
 
 export namespace geneinfo {
   export interface GeneInfoEntry extends genenames.GenenameEntry {
-    coverageWes: number;
-    coverageWgs: number;
+    coverageWes: number | undefined;
+    coverageWgs: number | undefined;
+    segdupWes: number | undefined;
+    segdupWgs: number | undefined;
   }
 
   export function searchByHgncId(
@@ -92,17 +101,21 @@ export namespace geneinfo {
     hgncId: string
   ): GeneInfoEntry[] {
     const stmt = db.prepare(`
+    select DISTINCT * from (
       SELECT distinct
         g.hgnc_id
         ,symbol
         ,name
-        ,MAX(CASE WHEN type = "wgs" THEN coverage END) as coverage_wgs
-        ,MAX(CASE WHEN type = "wes" THEN coverage END) as coverage_wes
+        ,MAX(CASE WHEN c.type = "wgs" THEN coverage END) as coverage_wgs
+        ,MAX(CASE WHEN c.type = "wes" THEN coverage END) as coverage_wes
+        ,MAX(CASE WHEN s.type = "wgs" THEN coverage END) as segdup_wgs
+        ,MAX(CASE WHEN s.type = "wes" THEN coverage END) as segdup_wes
       FROM genenames g
-      JOIN gene_coverage c on g.hgnc_id = c.hgnc_id
+      LEFT OUTER JOIN gene_coverage c on g.hgnc_id = c.hgnc_id
+      LEFT OUTER JOIN gene_segdups  s on g.hgnc_id = s.hgnc_id
       WHERE g.hgnc_id = :hgncId
       GROUP BY g.hgnc_id, symbol ,name
-      ORDER BY symbol
+      ORDER BY symbol)
       `);
     const p = { ":hgncId": hgncId };
     stmt.bind(p);
@@ -113,8 +126,10 @@ export namespace geneinfo {
         hgncId: row.hgnc_id as string,
         symbol: row.symbol as string,
         name: row.name as string,
-        coverageWes: row.coverage_wes as number,
-        coverageWgs: row.coverage_wgs as number,
+        coverageWes: nullToUndefined<number>(row.coverage_wes),
+        coverageWgs: nullToUndefined<number>(row.coverage_wgs),
+        segdupWes: nullToUndefined<number>(row.segdup_wgs),
+        segdupWgs: nullToUndefined<number>(row.segdup_wes),
       });
     }
     return r;
@@ -309,28 +324,42 @@ export namespace genepanels {
     return r;
   }
 
-  export interface Genepanel {
+  interface GenepanelBase {
     name: string;
     version: string;
-    //dateCreated: Date // not needed now
     dateCreated: Date | undefined;
     isLatest: boolean;
+  }
+
+  export interface Genepanel extends GenepanelBase {
+    numRefseq: number;
   }
 
   export function getGenepanels(db: Database): Genepanel[] {
     const r: Genepanel[] = [];
     db.each(
       `
+      WITH refseq_counts AS (
+        SELECT
+          genepanel_name AS name
+          ,genepanel_version AS version
+          ,count(refseq_id) AS num_refseq
+        FROM genepanel_regions gr
+        WHERE refseq_id IS NOT NULL
+        GROUP BY gr.genepanel_name, gr.genepanel_version
+      )
       SELECT
-        name
-        ,version
-        ,date_created
+        p.name
+        ,p.version
+        ,p.date_created
         ,CASE
-          WHEN (name, version) in (select name, version from latest_genepanels)
+          WHEN (p.name, p.version) in (select name, version from latest_genepanels)
             then 1
             else 0
           END AS is_latest
+        ,rc.num_refseq
       FROM genepanels p
+      JOIN refseq_counts rc on rc.name = p.name AND rc.version = p.version
     `,
       (row: ParamsObject) =>
         r.push({
@@ -341,46 +370,44 @@ export namespace genepanels {
               : undefined,
           name: row.name as string,
           version: row.version as string,
+          numRefseq: row.num_refseq as number,
         }),
       () => {}
     );
     return r;
   }
 
-  export interface GeneCount extends Genepanel {
+  export interface GeneCount extends GenepanelBase {
     numHits: number;
   }
 
   export function getCountByHgncIds(
     db: Database,
-    hgnc_ids: string[]
+    hgncIds: string[]
   ): GeneCount[] {
-    db.run("DROP TABLE IF EXISTS temp_hgnc_ids");
-    db.run(`CREATE TEMP TABLE temp_hgnc_ids (
-        id TEXT
-      )`);
-    hgnc_ids.forEach((hgnc_id) => {
-      db.run("INSERT INTO temp_hgnc_ids VALUES (:hgnc_id)", {
-        ":hgnc_id": hgnc_id,
-      });
-    });
+    // NOTE: SQLite does not seem to support variable lists.
+    //         Creating a temp table seem to cause race
+    //         conditions and requires write access to the DB.
+    //       This is kind of a hack to feed the list of IDs.
+    const dbStrHgncIds = hgncIds.map((e) => `'${e}'`).join(",");
+
     const r: GeneCount[] = [];
     db.each(
       `
-    with tmp_refseq as (
-      SELECT r.id, r.hgnc_id from refseq r where r.hgnc_id in (select id from temp_hgnc_ids)
-      )
-      select genepanel_name, genepanel_version, count(hgnc_id) as numHits,
-        case when (genepanel_name, genepanel_version) in (select name, version from latest_genepanels) then 1 else 0 end as isLatest,
-        gp.date_created
-      from (select DISTINCT gr.genepanel_name, gr.genepanel_version, tr.hgnc_id
-        from genepanel_regions gr
-        join tmp_refseq tr
-        on tr.id = gr.refseq_id
-      ) as gpr
-      LEFT OUTER JOIN genepanels gp ON gp.name = gpr.genepanel_name AND gp.version = gpr.genepanel_version
-        group by genepanel_name, genepanel_version
-        order by genepanel_name, genepanel_version
+      with tmp_refseq as (
+        SELECT r.id, r.hgnc_id from refseq r where r.hgnc_id in (${dbStrHgncIds})
+        )
+        select genepanel_name, genepanel_version, count(hgnc_id) as numHits,
+          case when (genepanel_name, genepanel_version) in (select name, version from latest_genepanels) then 1 else 0 end as isLatest,
+          gp.date_created
+        from (select DISTINCT gr.genepanel_name, gr.genepanel_version, tr.hgnc_id
+          from genepanel_regions gr
+          join tmp_refseq tr
+          on tr.id = gr.refseq_id
+        ) as gpr
+        LEFT OUTER JOIN genepanels gp ON gp.name = gpr.genepanel_name AND gp.version = gpr.genepanel_version
+          group by genepanel_name, genepanel_version
+          order by genepanel_name, genepanel_version
         `,
       (row: ParamsObject) =>
         r.push({
@@ -395,7 +422,6 @@ export namespace genepanels {
         }),
       () => {}
     );
-    //db.run("DROP TABLE IF EXISTS temp_hgnc_ids");
     return r;
   }
 }
