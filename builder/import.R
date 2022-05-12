@@ -115,11 +115,7 @@ import_coverage <- function(db, file_path, type) {
   cat(sprintf("importing coverage %s\n", type))
   colHgncId    <- "gene.id"
   colCoverage  <- "Mean"
-  #  [4] "Status"            "Previous.symbols"  "Alias.symbols"
-  #  [7] "Chromosome"        "Accession.numbers" "RefSeq.IDs"
-  # [10] "Alias.names"
   d <- read.table(file_path, sep="\t", header=T, quote="")
-  # patch first col ("HGNC:11297" -> "11297")
   d[,colCoverage] <- sub("%","", d[,colCoverage])
   rs <- DBI::dbSendStatement(db,
     'INSERT INTO gene_coverage (
@@ -135,6 +131,33 @@ import_coverage <- function(db, file_path, type) {
     params = list(
       hgnc_id=d[i,colHgncId]
       , coverage=as.numeric(d[i,colCoverage])/100
+      , type=type
+    )
+    DBI::dbBind(rs, params)
+  }
+  DBI::dbClearResult(rs)
+}
+
+import_seqdups <- function(db, file_path, type) {
+  cat(sprintf("importing seqdups %s\n", type))
+  colHgncId    <- "gene"
+  colSegdup    <- "Mean"
+  d <- read.table(file_path, sep="\t", header=T, quote="")
+  d[,colSegdup] <- sub("%","", d[,colSegdup])
+  rs <- DBI::dbSendStatement(db,
+    'INSERT INTO gene_segdups (
+      hgnc_id
+      , segdup
+      , type
+    ) VALUES (
+      :hgnc_id
+      , :segdup
+      , :type
+    )')
+  for (i in 1:nrow(d)) {
+    params = list(
+      hgnc_id=d[i,colHgncId]
+      , segdup=as.numeric(d[i,colSegdup])/100
       , type=type
     )
     DBI::dbBind(rs, params)
@@ -276,6 +299,8 @@ invisible(
 #-------------------------------------------------------------------------------
 
 import_genenames(db, "dbs/genenames.tsv")
+import_seqdups(db, "covdata/wgs/wgs_summary_segdups_coverage_genes_10x.tsv", "wgs")
+import_seqdups(db, "covdata/wes/wes_summary_segdups_coverage_genes_10x.tsv", "wes")
 import_coverage(db, "covdata/wgs/wgs_summary_coverage_genes_10x.tsv", "wgs")
 import_coverage(db, "covdata/wes/wes_summary_coverage_genes_10x.tsv", "wes")
 import_refseq(db, "dbs/genenames.tsv")
