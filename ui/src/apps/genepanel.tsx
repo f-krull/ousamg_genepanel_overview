@@ -73,13 +73,17 @@ function GenepanelInfo({
               : naSymbol}
           </Description>
           <Description title="Other versions">
-            {otherGenepanels.map((e, i) => (
-              <span key={e.version} className="">
-                {i !== 0 ? ", " : ""}
-                <a href={Routes.Genepanel(e)}>{e.version}</a>
-                <span className="small">{e.isLatest ? "(latest)" : ""}</span>
-              </span>
-            ))}
+            {otherGenepanels.length
+              ? otherGenepanels.map((e, i) => (
+                  <span key={e.version} className="">
+                    {i !== 0 ? ", " : ""}
+                    <a href={Routes.Genepanel(e)}>{e.version}</a>
+                    <span className="small">
+                      {e.isLatest ? "(latest)" : ""}
+                    </span>
+                  </span>
+                ))
+              : naSymbol}
             {otherGenepanels.length > 0 ? (
               <>
                 {" "}

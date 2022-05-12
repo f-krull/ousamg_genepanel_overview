@@ -173,33 +173,69 @@ export function GeneList({
       <TableContext.Consumer>
         {(table) => {
           return (
-            <div className="row g-1 justify-content-start mb-2 gx-3">
-              <div className="col-12 col-md-6 col-lg-4">
-                <RangeInput
-                  title="min. WGS"
-                  initialValue={0}
-                  onChange={(e) => {
-                    const fn = { ...filter }; // immutable update
-                    fn.wgsMin = e / 100;
-                    updateFilter(fn, table);
-                  }}
-                />
+            <>
+              <div className="row g-1 justify-content-start mb-2 gx-3 align-items-end">
+                <div className="col-12 col-lg-8 me-auto">
+                  <div className="row border border-secondary p-2 rounded-3 mx-0">
+                    <div className="col-12 text-muted mb-2">
+                      Coverage filter
+                    </div>
+                    <div className="col-12 col-md-6 col-lg-6">
+                      <RangeInput
+                        title="min. WGS"
+                        initialValue={0}
+                        onChange={(e) => {
+                          const fn = { ...filter }; // immutable update
+                          fn.wgsMin = e / 100;
+                          updateFilter(fn, table);
+                        }}
+                      />
+                    </div>
+                    <div className="col-12 col-md-6 col-lg-6">
+                      <RangeInput
+                        title="min. WES"
+                        initialValue={0}
+                        onChange={(e) => {
+                          const fn = { ...filter }; // immutable update
+                          fn.wesMin = e / 100;
+                          updateFilter(fn, table);
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div className="col-12 col-sm-2">
+                  <DownloadTable table={table} db={db} fn={`genes`} />
+                </div>
               </div>
-              <div className="col-12 col-md-6 col-lg-4 me-auto">
-                <RangeInput
-                  title="min. WES"
-                  initialValue={0}
-                  onChange={(e) => {
-                    const fn = { ...filter }; // immutable update
-                    fn.wesMin = e / 100;
-                    updateFilter(fn, table);
-                  }}
-                />
-              </div>
-              <div className="col-12 col-sm-2">
-                <DownloadTable table={table} db={db} fn={`genes`} />
-              </div>
-            </div>
+              {/* <div className="row g-1 justify-content-start mb-2 gx-3">
+                <div className="col-12 col-md-6 col-lg-4">
+                  <RangeInput
+                    title="min. WGS"
+                    initialValue={0}
+                    onChange={(e) => {
+                      const fn = { ...filter }; // immutable update
+                      fn.wgsMin = e / 100;
+                      updateFilter(fn, table);
+                    }}
+                  />
+                </div>
+                <div className="col-12 col-md-6 col-lg-4 me-auto">
+                  <RangeInput
+                    title="min. WES"
+                    initialValue={0}
+                    onChange={(e) => {
+                      const fn = { ...filter }; // immutable update
+                      fn.wesMin = e / 100;
+                      updateFilter(fn, table);
+                    }}
+                  />
+                </div>
+                <div className="col-12 col-sm-2">
+                  <DownloadTable table={table} db={db} fn={`genes`} />
+                </div>
+              </div> */}
+            </>
           );
         }}
       </TableContext.Consumer>
