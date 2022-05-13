@@ -13,6 +13,7 @@ import { Section } from "../components/section";
 import { formatCoverage, formatDateFn, formatSegdup } from "../shared/format";
 import { DownloadModule } from "tabulator-tables";
 import { DownloadTable } from "../components/downloadtable";
+import { MenuPages } from "../components/scaffold";
 
 interface GenepanelEntryTree extends genepanels.GenepanelEntry {
   _children?: GenepanelEntryTree[];
@@ -207,7 +208,7 @@ function GeneApp(props: any) {
   const hgncId = urlParams.get("hgnc_id");
 
   return (
-    <DbScaffold title="Gene Info">
+    <DbScaffold title="Gene Info" currentPage={MenuPages.searchGene}>
       <DbContext.Consumer>
         {(db) => {
           if (!hgncId) {

@@ -13,6 +13,7 @@ import { cols } from "../shared/tableColumns";
 import { GeneList } from "../components/genelist";
 import { Tabulator } from "tabulator-tables";
 import { DownloadTable } from "../components/downloadtable";
+import { MenuPages } from "../components/scaffold";
 
 interface GeneCountTree extends genepanels.GeneCount {
   _children?: GeneCountTree[];
@@ -20,17 +21,65 @@ interface GeneCountTree extends genepanels.GeneCount {
   parent?: GeneCountTree;
 }
 
-function TableUpdater({
-  table,
-  geneCounts,
-}: {
-  table: Tabulator;
-  geneCounts: GeneCountTree[];
-}) {
-  if (table) {
-    table.setData(geneCounts);
-  }
-  return <>d</>;
+function getColDef(hgncIds: string[]): Tabulator.ColumnDefinition[] {
+  return [
+    cols.genepanelName,
+    {
+      title: "Version",
+      field: "version",
+      formatter: (e) => {
+        if (!e.getRow().getData().parent) {
+          return e.getValue();
+        }
+        const parent: GeneCountTree = e.getRow().getData()
+          .parent as GeneCountTree;
+        //? (e.getValue() as GeneCountTree). : ""
+        const url = Routes.GenepanelDiff(
+          {
+            name: e.getRow().getData().name,
+            version: e.getRow().getData().version,
+          },
+          parent
+        );
+        return `${e.getValue()} (<a href="${url}">diff</a>)`;
+      },
+    },
+    cols.genepanelDateCreated,
+    {
+      //column group
+      title: "Num. hits",
+      columns: [
+        {
+          title: "Total",
+          field: "numHits",
+          hozAlign: "right",
+        },
+        {
+          title: "",
+          field: "numHitsRel",
+          formatter: "progress",
+          minWidth: 80,
+        },
+        {
+          title: "%",
+          field: "numHitsRel",
+          mutator: (value) => value * 100,
+          hozAlign: "right",
+          formatter: (e) => `${e.getValue().toFixed(1)}%`,
+        },
+      ],
+    },
+    {
+      title: "",
+      formatter: (e) => {
+        const row = e.getRow().getData() as GeneCountTree;
+        return `<a href="${Routes.GenepanelGeneOverlap(
+          row,
+          hgncIds
+        )}">overlap</a>`;
+      },
+    },
+  ];
 }
 
 function GenePanels({ db, hgncIds }: { db: Database; hgncIds: string[] }) {
@@ -53,7 +102,13 @@ function GenePanels({ db, hgncIds }: { db: Database; hgncIds: string[] }) {
     });
     setGeneCounts(tree);
     if (table) {
-      table.setData(tree);
+      try {
+        table.setData(tree);
+        table.setColumns(getColDef(hgncIds));
+      } catch (e) {
+        // whatever
+        console.error(e);
+      }
     }
   }, [hgncIds]);
 
@@ -76,54 +131,7 @@ function GenePanels({ db, hgncIds }: { db: Database; hgncIds: string[] }) {
         dataTree: true,
         dataTreeChildIndent: 25,
         dataTreeStartExpanded: true,
-        columns: [
-          cols.genepanelName,
-          {
-            title: "Version",
-            field: "version",
-            formatter: (e) => {
-              if (!e.getRow().getData().parent) {
-                return e.getValue();
-              }
-              const parent: GeneCountTree = e.getRow().getData()
-                .parent as GeneCountTree;
-              //? (e.getValue() as GeneCountTree). : ""
-              const url = Routes.GenepanelDiff(
-                {
-                  name: e.getRow().getData().name,
-                  version: e.getRow().getData().version,
-                },
-                parent
-              );
-              return `${e.getValue()} (<a href="${url}">diff</a>)`;
-            },
-          },
-          cols.genepanelDateCreated,
-          {
-            //column group
-            title: "Num. hits",
-            columns: [
-              {
-                title: "Total",
-                field: "numHits",
-                hozAlign: "right",
-              },
-              {
-                title: "",
-                field: "numHitsRel",
-                formatter: "progress",
-                minWidth: 80,
-              },
-              {
-                title: "%",
-                field: "numHitsRel",
-                mutator: (value) => value * 100,
-                hozAlign: "right",
-                formatter: (e) => `${e.getValue().toFixed(1)}%`,
-              },
-            ],
-          },
-        ],
+        columns: getColDef(hgncIds),
       }}
     >
       <TableContext.Consumer>
@@ -203,7 +211,7 @@ function GenesApp(props: any) {
   const hgncIds = urlParams.getList("hgnc_ids") || [];
 
   return (
-    <DbScaffold title="Gene Set Info">
+    <DbScaffold title="Gene Set Info" currentPage={MenuPages.searchGenes}>
       <DbContext.Consumer>
         {(db) => {
           if (hgncIds.length === 0) {

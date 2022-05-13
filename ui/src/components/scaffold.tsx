@@ -4,10 +4,10 @@ import { Routes } from "../shared/routes";
 import { version } from "../shared/sql";
 
 export enum MenuPages {
-  searchGene = "Single gene",
-  searchGenes = "Multiple genes",
-  diffGenepanel = "Compare panels",
-  searchGenepanel = "Search panels",
+  searchGene = "Gene Info",
+  searchGenes = "Gene Set Info",
+  diffGenepanel = "Compare Panels",
+  searchGenepanel = "Gene Panels",
 }
 
 type MenuEnties = Record<MenuPages, { url: string }>;
@@ -61,7 +61,8 @@ export function Scaffold(props: {
         <div className="container">
           <a className="navbar-brand" href={Routes.Home}>
             <img width={56} height={56} src={require("../../img/logo.png")} />
-            <strong className="ms-3">Gene Panel Overview</strong>
+            <strong className="ms-3 me-2">Gene Panel Overview</strong>
+            <span className="badge rounded-pill bg-danger">Preview</span>
           </a>
           <ul className="navbar-nav me-lg-auto">
             {Object.entries(menuEntries).map(([k, v]) => (

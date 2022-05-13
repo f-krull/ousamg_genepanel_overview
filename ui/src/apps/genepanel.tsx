@@ -4,6 +4,7 @@ import { Database } from "sql.js";
 import { DbContext, DbScaffold } from "../components/dbscaffold";
 import { Description } from "../components/description";
 import { GeneList } from "../components/genelist";
+import { MenuPages } from "../components/scaffold";
 import { Section } from "../components/section";
 import { formatDate, naSymbol } from "../shared/format";
 import { Routes } from "../shared/routes";
@@ -131,10 +132,7 @@ function GeneApp(props: any) {
   const genepanelVersion = urlParams.get("version");
 
   return (
-    <DbScaffold title="Gene Panel">
-      {/* <AppStateContext.Consumer>
-        {(value) => <h1>{value}</h1>}
-      </AppStateContext.Consumer> */}
+    <DbScaffold title="Gene Panel" currentPage={MenuPages.searchGenepanel}>
       <DbContext.Consumer>
         {(db) => {
           if (!genepanelName) {
