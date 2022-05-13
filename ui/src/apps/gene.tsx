@@ -81,14 +81,6 @@ function GeneInfo({ db, hgncId }: { db: Database; hgncId: string }) {
             <span className="small">WES</span>{" "}
             {formatCoverage(geneinfoEntry.coverageWes)}
           </Description>
-          <Description title="Seg. duplication">
-            <span className="me-3">
-              <span className="small">WGS</span>{" "}
-              {formatSegdup(geneinfoEntry.segdupWgs)}
-            </span>
-            <span className="small">WES</span>{" "}
-            {formatSegdup(geneinfoEntry.segdupWes)}
-          </Description>
         </div>
       </Section>
       <Section

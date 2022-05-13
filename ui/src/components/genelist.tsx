@@ -149,24 +149,6 @@ export function GeneList({
               },
             ],
           },
-          {
-            //column group
-            title: "Seg. duplication",
-            columns: [
-              {
-                title: "WGS",
-                field: "segdupWgs",
-                hozAlign: "right",
-                formatter: (e) => formatSegdup(e.getValue()),
-              },
-              {
-                title: "WES",
-                field: "segdupWes",
-                hozAlign: "right",
-                formatter: (e) => formatSegdup(e.getValue()),
-              },
-            ],
-          },
         ],
       }}
     >

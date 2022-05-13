@@ -108,11 +108,8 @@ export namespace geneinfo {
         ,name
         ,MAX(CASE WHEN c.type = "wgs" THEN coverage END) as coverage_wgs
         ,MAX(CASE WHEN c.type = "wes" THEN coverage END) as coverage_wes
-        ,MAX(CASE WHEN s.type = "wgs" THEN coverage END) as segdup_wgs
-        ,MAX(CASE WHEN s.type = "wes" THEN coverage END) as segdup_wes
       FROM genenames g
       LEFT OUTER JOIN gene_coverage c on g.hgnc_id = c.hgnc_id
-      LEFT OUTER JOIN gene_segdups  s on g.hgnc_id = s.hgnc_id
       WHERE g.hgnc_id = :hgncId
       GROUP BY g.hgnc_id, symbol ,name
       ORDER BY symbol)
