@@ -6,28 +6,13 @@ import { genenames } from "../shared/sql";
 import { Routes } from "../shared/routes";
 import { DbContext, DbScaffold } from "../components/dbscaffold";
 import { Section } from "../components/section";
+import { GeneHit } from "../components/genehit";
 
 interface GeneLookupStatus {
   [k: string]: {
     index: number;
     data: genenames.GenenameEntry[];
   };
-}
-
-function GeneHit({
-  children,
-  error,
-}: {
-  children: React.ReactNode;
-  error: boolean;
-}) {
-  return (
-    <div className="col-12">
-      <span className={`badge rounded-pill bg-${error ? "danger" : "success"}`}>
-        {children}
-      </span>
-    </div>
-  );
 }
 
 function InpGenesApp(props: any) {

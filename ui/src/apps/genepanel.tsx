@@ -4,6 +4,7 @@ import { Database } from "sql.js";
 import { DbContext, DbScaffold } from "../components/dbscaffold";
 import { Description } from "../components/description";
 import { GeneList } from "../components/genelist";
+import { GenepanelInfo } from "../components/genepanelinfo";
 import { MenuPages } from "../components/scaffold";
 import { Section } from "../components/section";
 import { formatDate, naSymbol } from "../shared/format";
@@ -11,7 +12,7 @@ import { Routes } from "../shared/routes";
 import { genepanels } from "../shared/sql";
 import { UrlParam } from "../shared/urlParam";
 
-function GenepanelInfo({
+function GenepanelPage({
   genepanelName,
   genepanelVersion,
   db,
@@ -32,22 +33,6 @@ function GenepanelInfo({
     return g;
   }, [genepanelName, genepanelVersion]);
 
-  const gps = React.useMemo(() => genepanels.getGenepanels(db), []).filter(
-    (g) => g.name === genepanelName
-  );
-  const currentGenepanel = React.useMemo(
-    () => gps.filter((g) => g.version === genepanelVersion)[0],
-    [genepanelName, genepanelVersion]
-  );
-  const otherGenepanels = React.useMemo(
-    () => gps.filter((g) => g.version != currentGenepanel.version),
-    []
-  );
-  const latestGenepanel = React.useMemo(
-    () => gps.filter((g) => g.isLatest)[0],
-    []
-  );
-
   // gets changed by filter
   const [numShownGenes, setNumShownGenes] = React.useState<number>(
     genes.length
@@ -55,59 +40,11 @@ function GenepanelInfo({
 
   return (
     <>
-      <Section title="Gene panel">
-        <div className="row gy-sm-2">
-          <Description title="Gene panel name">
-            {currentGenepanel.name}
-          </Description>
-          <Description title="Version">
-            {currentGenepanel.version}{" "}
-            {currentGenepanel.isLatest ? (
-              ""
-            ) : (
-              <span className="small">(superseded)</span>
-            )}
-          </Description>
-          <Description title="Date created">
-            {currentGenepanel.dateCreated
-              ? formatDate(currentGenepanel.dateCreated)
-              : naSymbol}
-          </Description>
-          <Description title="Other versions">
-            {otherGenepanels.length
-              ? otherGenepanels.map((e, i) => (
-                  <span key={e.version} className="">
-                    {i !== 0 ? ", " : ""}
-                    <a href={Routes.Genepanel(e)}>{e.version}</a>
-                    <span className="small">
-                      {e.isLatest ? "(latest)" : ""}
-                    </span>
-                  </span>
-                ))
-              : naSymbol}
-            {otherGenepanels.length > 0 ? (
-              <>
-                {" "}
-                <a
-                  role="button"
-                  className="btn btn-outline-secondary btn-sm small py-0"
-                  href={Routes.GenepanelDiff(
-                    otherGenepanels[0],
-                    currentGenepanel
-                  )}
-                >
-                  compare
-                </a>
-              </>
-            ) : (
-              ""
-            )}
-          </Description>
-          <Description title="Num. transcripts">
-            {currentGenepanel.numRefseq}
-          </Description>
-        </div>
-      </Section>
+      <GenepanelInfo
+        db={db}
+        genepanelName={genepanelName}
+        genepanelVersion={genepanelVersion}
+      />
       <Section
         title={`Genes (${
           numShownGenes !== genes.length ? `showing ${numShownGenes}/` : ""
@@ -125,7 +62,7 @@ function GenepanelInfo({
   );
 }
 
-function GeneApp(props: any) {
+function GenepanelApp(props: any) {
   // get gene id
   const urlParams = new UrlParam();
   const genepanelName = urlParams.get("name");
@@ -144,7 +81,7 @@ function GeneApp(props: any) {
             return <>no genepanel version defined</>;
           }
           return (
-            <GenepanelInfo
+            <GenepanelPage
               db={db}
               genepanelName={genepanelName}
               genepanelVersion={genepanelVersion}
@@ -159,5 +96,5 @@ function GeneApp(props: any) {
 const rootElement = document.getElementById("app");
 if (rootElement) {
   const root = createRoot(rootElement);
-  root.render(<GeneApp />);
+  root.render(<GenepanelApp />);
 }

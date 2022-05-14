@@ -117,65 +117,67 @@ function GenePanels({ db, hgncIds }: { db: Database; hgncIds: string[] }) {
   }
 
   return (
-    <Table
-      className="mb-5"
-      domId="genepanels"
-      onCreated={(t) => setTable(t)}
-      options={{
-        data: geneCounts,
-        maxHeight: "60vh",
-        layout: "fitDataFill",
-        columnDefaults: {
-          title: "",
-        },
-        dataTree: true,
-        dataTreeChildIndent: 25,
-        dataTreeStartExpanded: true,
-        columns: getColDef(hgncIds),
-      }}
-    >
-      <TableContext.Consumer>
-        {(table) => {
-          return (
-            <>
-              {/* <TableUpdater table={table} geneCounts={geneCounts} /> */}
-              <div className="row g-1 justify-content-end mb-2">
-                <div className="col-12 col-sm-2 col-lg-1">
-                  <div
-                    className="btn btn-outline-primary btn-sm w-100"
-                    itemType="button"
-                    onClick={() => {
-                      table.getRows().forEach((r) => r.treeExpand());
-                    }}
-                  >
-                    {" "}
-                    Expand
-                  </div>
-                </div>
-                <div className="col-12 col-sm-2 col-lg-1">
-                  <div
-                    className="btn btn-outline-primary btn-sm w-100"
-                    itemType="button"
-                    onClick={() => {
-                      table.getRows().forEach((r) => r.treeCollapse());
-                    }}
-                  >
-                    Collapse
-                  </div>
-                </div>
-                <div className="col-12 col-sm-2">
-                  <DownloadTable
-                    table={table}
-                    db={db}
-                    fn={`genepanel-overlap`}
-                  />
-                </div>
-              </div>
-            </>
-          );
+    <>
+      <Table
+        domId="genepanels"
+        onCreated={(t) => setTable(t)}
+        options={{
+          data: geneCounts,
+          maxHeight: "60vh",
+          layout: "fitDataFill",
+          columnDefaults: {
+            title: "",
+          },
+          dataTree: true,
+          dataTreeChildIndent: 25,
+          dataTreeStartExpanded: true,
+          columns: getColDef(hgncIds),
         }}
-      </TableContext.Consumer>
-    </Table>
+      >
+        <TableContext.Consumer>
+          {(table) => {
+            return (
+              <>
+                {/* <TableUpdater table={table} geneCounts={geneCounts} /> */}
+                <div className="row g-1 justify-content-end mb-2">
+                  <div className="col-12 col-sm-2 col-lg-1">
+                    <div
+                      className="btn btn-outline-primary btn-sm w-100"
+                      itemType="button"
+                      onClick={() => {
+                        table.getRows().forEach((r) => r.treeExpand());
+                      }}
+                    >
+                      {" "}
+                      Expand
+                    </div>
+                  </div>
+                  <div className="col-12 col-sm-2 col-lg-1">
+                    <div
+                      className="btn btn-outline-primary btn-sm w-100"
+                      itemType="button"
+                      onClick={() => {
+                        table.getRows().forEach((r) => r.treeCollapse());
+                      }}
+                    >
+                      Collapse
+                    </div>
+                  </div>
+                  <div className="col-12 col-sm-2">
+                    <DownloadTable
+                      table={table}
+                      db={db}
+                      fn={`genepanel-overlap`}
+                    />
+                  </div>
+                </div>
+              </>
+            );
+          }}
+        </TableContext.Consumer>
+      </Table>
+      <div className="mb-5" />
+    </>
   );
 }
 

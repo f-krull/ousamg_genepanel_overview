@@ -17,13 +17,11 @@ export function Table({
   options,
   domId,
   children,
-  className,
   onCreated,
 }: {
   options: Tabulator.Options;
   children?: React.ReactNode;
   domId: string;
-  className?: string;
   onCreated?: (t: Tabulator) => void;
 }) {
   const [table, setTable] = React.useState<Tabulator>();
@@ -59,7 +57,7 @@ export function Table({
   return (
     <>
       {cChildren}
-      <div className={className} id={domId}></div>
+      <div id={domId}></div>
     </>
   );
 }
