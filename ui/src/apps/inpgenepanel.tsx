@@ -82,7 +82,7 @@ function InpGenesApp(props: any) {
     >
       <DbContext.Consumer>
         {(db) => (
-          <Section title="Genepanels">{<GenepanelList db={db} />}</Section>
+          <Section title="Gene panels">{<GenepanelList db={db} />}</Section>
         )}
       </DbContext.Consumer>
     </DbScaffold>

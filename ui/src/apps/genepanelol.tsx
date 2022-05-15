@@ -81,7 +81,7 @@ function GenepanelOverlap({
         </div>
       </Section>
       <Section
-        title={`Selected genes included in genepanel (${selGenesIncluded.length})`}
+        title={`Selected genes included in gene panel (${selGenesIncluded.length})`}
       >
         {selGenesIncluded.length ? (
           <GeneList
@@ -95,7 +95,7 @@ function GenepanelOverlap({
         )}
       </Section>
       <Section
-        title={`Selected genes not included in genepanel (${selGenesNotIncluded.length})`}
+        title={`Selected genes not included in gene panel (${selGenesNotIncluded.length})`}
       >
         {selGenesNotIncluded.length ? (
           <GeneList
