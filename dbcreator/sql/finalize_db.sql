@@ -26,20 +26,6 @@ DELETE FROM gene_coverage
      FROM ids
    );
 
--- prune gene segdups
-
-WITH ids AS (
-  SELECT DISTINCT r.hgnc_id
-  FROM refseq r
-  WHERE r.hgnc_id NOT NULL
-)
-DELETE FROM gene_segdups
- WHERE
-   hgnc_id NOT IN (
-     SELECT hgnc_id
-     FROM ids
-   );
-
 -- prune hgnc
 
 WITH ids AS (
@@ -97,7 +83,3 @@ CREATE INDEX idx_gene_coverage_coverage ON gene_coverage(coverage);
 CREATE INDEX idx_gene_coverage_type ON gene_coverage('type');
 
 CREATE INDEX idx_gene_coverage_hgnc_id ON gene_coverage(hgnc_id);
-
-CREATE INDEX idx_gene_segdups_type ON gene_segdups('type');
-
-CREATE INDEX idx_gene_segdups_hgnc_id ON gene_segdups(hgnc_id);

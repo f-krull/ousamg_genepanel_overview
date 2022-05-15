@@ -1,8 +1,17 @@
 #!/usr/bin/env Rscript
 
-if ( !( "RSQLite" %in% rownames(installed.packages()) ) ) {
-  cat("Please install the RSQLite package:\n   > install.packages(\"RSQLite\")\n\n")
-}
+# install debs
+(function() {
+  libdir=Sys.getenv("R_LIBS")
+
+  .inst <- function(pkg) {
+    if ( !( pkg %in% rownames(installed.packages(lib.loc=libdir)) ) ) {
+      install.packages( pkg, Ncpus=4, lib=libdir )
+    }
+  }
+  .inst("RSQLite")
+  .inst("DBI")
+})()
 
 #-------------------------------------------------------------------------------
 
@@ -14,10 +23,15 @@ options(
 
 #-------------------------------------------------------------------------------
 
-# constants
+# check args
 
-data_path <- "genepanels/production/"
-data_path <- "genepanels/legacy2new/"
+args = commandArgs(trailingOnly=TRUE)
+if (length(args) < 2) stop("missing args")
+# input dir
+input_data_path = args[1]
+
+# output file
+output_file=args[2]
 
 #-------------------------------------------------------------------------------
 
@@ -138,33 +152,6 @@ import_coverage <- function(db, file_path, type) {
   DBI::dbClearResult(rs)
 }
 
-import_seqdups <- function(db, file_path, type) {
-  cat(sprintf("importing seqdups %s\n", type))
-  colHgncId    <- "gene"
-  colSegdup    <- "Mean"
-  d <- read.table(file_path, sep="\t", header=T, quote="")
-  d[,colSegdup] <- sub("%","", d[,colSegdup])
-  rs <- DBI::dbSendStatement(db,
-    'INSERT INTO gene_segdups (
-      hgnc_id
-      , segdup
-      , type
-    ) VALUES (
-      :hgnc_id
-      , :segdup
-      , :type
-    )')
-  for (i in 1:nrow(d)) {
-    params = list(
-      hgnc_id=d[i,colHgncId]
-      , segdup=as.numeric(d[i,colSegdup])/100
-      , type=type
-    )
-    DBI::dbBind(rs, params)
-  }
-  DBI::dbClearResult(rs)
-}
-
 import_refseq <- function(db, file_path) {
   cat("importing refseq\n")
   colHgncId    <- "HGNC.ID"
@@ -192,7 +179,6 @@ import_refseq <- function(db, file_path) {
   }
   DBI::dbClearResult(rs)
 }
-
 
 import_transcripts <- function(db, data_path, genepanel_id) {
   colGeneSymbol <- "geneSymbol"
@@ -249,9 +235,6 @@ import_transcripts <- function(db, data_path, genepanel_id) {
       , transcript_source=tsdata[i,colSource]
       , inh_mode=tsdata[i,colInheritance]
     )
-    # cat("test 2\n")
-    # cat(capture.output(str(params)))
-    # cat("\n")
     DBI::dbBind(rs, params)
   }
   DBI::dbClearResult(rs)
@@ -261,7 +244,7 @@ import_transcripts <- function(db, data_path, genepanel_id) {
 
 # init db
 
-db_file <- "gp_01.sqlite"
+db_file <- sprintf("%s_tmp", output_file)
 if (file.exists(db_file)) {
   invisible(file.remove(db_file))
 }
@@ -271,8 +254,9 @@ if (!interactive()) {
     DBI::dbDisconnect(db)
   )
 }
-db_exec_file(db, "./create_db.sql")
+db_exec_file(db, "./dbcreator/sql/create_db.sql")
 
+# create version
 rs <- DBI::dbSendStatement(db,
   'INSERT INTO version (
     sha1
@@ -295,25 +279,25 @@ invisible(
   DBI::dbClearResult(rs)
 )
 
+import_genenames(db, sprintf("%s/dbs/genenames.tsv", input_data_path))
+import_coverage(db, sprintf("%s/covdata/wgs/wgs_summary_coverage_genes_10x.tsv", input_data_path), "wgs")
+import_coverage(db, sprintf("%s/covdata/wes/wes_summary_coverage_genes_10x.tsv", input_data_path), "wes")
+import_refseq(db, sprintf("%s/dbs/genenames.tsv", input_data_path))
 
-#-------------------------------------------------------------------------------
-
-import_genenames(db, "dbs/genenames.tsv")
-import_seqdups(db, "covdata/wgs/wgs_summary_segdups_coverage_genes_10x.tsv", "wgs")
-import_seqdups(db, "covdata/wes/wes_summary_segdups_coverage_genes_10x.tsv", "wes")
-import_coverage(db, "covdata/wgs/wgs_summary_coverage_genes_10x.tsv", "wgs")
-import_coverage(db, "covdata/wes/wes_summary_coverage_genes_10x.tsv", "wes")
-import_refseq(db, "dbs/genenames.tsv")
 # read genepanels
-
-cat("importing genepanel\n")
-genepanel_dirs <- list.files(path=data_path)
+gps_path = sprintf("%s/genepanels/legacy2new/", input_data_path)
+genepanel_dirs <- list.files(path=gps_path)
 for (genepanel_id in genepanel_dirs) {
-  write(genepanel_id,"")
-  import_genepanel(db, data_path, genepanel_id)
-  import_transcripts(db, data_path, genepanel_id)
+  write(sprintf("importing genepanel %s", genepanel_id),"")
+  import_genepanel(db, gps_path, genepanel_id)
+  import_transcripts(db, gps_path, genepanel_id)
 }
 
-db_exec_file(db, "./finalize_db.sql")
+db_exec_file(db, "./dbcreator/sql/finalize_db.sql")
+
+# finalize file
+invisible (
+  file.rename(db_file, output_file)
+)
 
 cat("ok\n")

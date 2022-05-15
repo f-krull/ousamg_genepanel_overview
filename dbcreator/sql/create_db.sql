@@ -61,11 +61,3 @@ CREATE TABLE gene_coverage (
   ,PRIMARY KEY (hgnc_id, 'type')
   ,FOREIGN KEY (hgnc_id) REFERENCES genenames(hgnc_id)
 );
-
-CREATE TABLE gene_segdups (
-  hgnc_id text not null
-  ,segdup float
-  ,'type' TEXT
-  ,PRIMARY KEY (hgnc_id, 'type')
-  ,FOREIGN KEY (hgnc_id) REFERENCES genenames(hgnc_id)
-);
