@@ -30,7 +30,7 @@ export function DbScaffold({
   React.useEffect(() => {
     // TODO: catch error and set app state
     (async () => {
-      const buf = await fetchWithProgress("../gp_01.sqlite", (p) => {
+      const buf = await fetchWithProgress("./db/gpdb_v1.sqlite", (p) => {
         setDlProgress(p === undefined ? 100 : p);
       });
       const config = {
