@@ -7,6 +7,6 @@ app.listen(port, () => {
   console.log(`Listening on ${port}`);
 });
 
-app.use(express.static('static'));
+app.use(express.static('../www/dev/'));
 app.use(compression());
 
