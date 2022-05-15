@@ -173,6 +173,15 @@ function GenepanelDiff({
     if (!selAName || !selAVersion || !selBName || !selBVersion) {
       return;
     }
+    const up = new UrlParam();
+    let same = true;
+    same = same && up.get("a_name") === selAName;
+    same = same && up.get("a_version") === selAVersion;
+    same = same && up.get("b_name") === selBName;
+    same = same && up.get("b_version") === selBVersion;
+    if (same) {
+      return;
+    }
     const url = Routes.GenepanelDiff(
       {
         name: selAName,
