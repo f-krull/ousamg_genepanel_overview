@@ -6,9 +6,11 @@
 
 Requirements: `docker`, `make`, `git`
 
-* ` git clone [this]... && cd ...`
+* ` git clone [this repo]... && cd ...`
 * build database:  
-  `make docker_dbcreate_dev`
+  _This part has not been streamlined yet. As a temporary solution, download the already build database file:_  
+   `( cd www/dev/db && wget https://genepanels.ousamg.uiocloud.no/db/gpdb_v1.sqlite )`  
+  In the future, run `make docker_dbcreate_dev` _TBD_
 * run web UI:  
   `make -C ui docker_dev`
 * in new tab, start server to host web UI:  
@@ -27,8 +29,20 @@ Requirements:
 * r-base
 
 Run steps above, but without any `docker_` docker prefixes.
-You might need to clean the `.r_libs/` when switchig between
+You might need to clean the `.r_libs/` folder when switchig between
 docker and non-docker environments.
+
+## Overview, status and future development
+
+### Rationale
+
+This webservice was created with the assumption the underlying data does not change often and read-only access is sufficient.  
+
+The data contained in the genepanel repository get compiled to a single database file. This DB file is served together with the webinterface as static files by a webserver. On the client a DBMS provided with the UI reads the DB file runs local queries. A high-enough cache time (`Cache-Control	max-age`) on the DB file is used to reduce loading times and traffic.  
+
+Over time, with increasing genepanels, the size of the DB file might need to be reduced. One way to accomplish a reduction is file size is to replace all RefSeq IDs (type `TEXT`) used as PK and FK with generated IDs of type `INT` and use a lookup table to map back to the original IDs. This can also be done for HGNC IDs.  
+
+_TDB how to build the db file_
 
 ## Production
 
@@ -37,6 +51,7 @@ docker and non-docker environments.
 * run web UI:  
   `make -C ui docker_prod`
 * copy the `www/prod` folder to the server
+
 
 ### Update the DB
 

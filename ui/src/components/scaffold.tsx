@@ -62,7 +62,6 @@ export function Scaffold(props: {
           <a className="navbar-brand" href={Routes.Home}>
             <img width={56} height={56} src={require("../../img/logo.png")} />
             <strong className="ms-3 me-2">Gene Panel Overview</strong>
-            <span className="badge rounded-pill bg-danger">Preview</span>
           </a>
           <ul className="navbar-nav me-lg-auto">
             {Object.entries(menuEntries).map(([k, v]) => (
