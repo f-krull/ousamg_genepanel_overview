@@ -279,13 +279,13 @@ invisible(
   DBI::dbClearResult(rs)
 )
 
-import_genenames(db, sprintf("%s/dbs/genenames.tsv", input_data_path))
-import_coverage(db, sprintf("%s/covdata/wgs/wgs_summary_coverage_genes_10x.tsv", input_data_path), "wgs")
-import_coverage(db, sprintf("%s/covdata/wes/wes_summary_coverage_genes_10x.tsv", input_data_path), "wes")
-import_refseq(db, sprintf("%s/dbs/genenames.tsv", input_data_path))
+import_genenames(db, sprintf("%s/data/external/genenames-symbols.tsv", input_data_path))
+import_coverage(db, sprintf("%s/data/internal/ousamg-read-coverage/wgs/genes_10x.tsv", input_data_path), "wgs")
+import_coverage(db, sprintf("%s/data/internal/ousamg-read-coverage/wes/genes_10x.tsv", input_data_path), "wes")
+import_refseq(db, sprintf("%s/data/external/genenames-refseq.tsv", input_data_path))
 
 # read genepanels
-gps_path = sprintf("%s/genepanels/legacy2new/", input_data_path)
+gps_path = sprintf("%s/panels/", input_data_path)
 genepanel_dirs <- list.files(path=gps_path)
 for (genepanel_id in genepanel_dirs) {
   write(sprintf("importing genepanel %s", genepanel_id),"")
