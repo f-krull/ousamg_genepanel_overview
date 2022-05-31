@@ -8,9 +8,9 @@ Requirements: `docker`, `make`, `git`
 
 * ` git clone [this repo]... && cd ...`
 * build database:  
-  _This part has not been streamlined yet. As a temporary solution, download the already build database file:_  
+  `GPSTORE_DIR=example/genepanel-store/ make docker_dbcreate_dev`  
+  _Alternatively, download the already build database file:_  
    `( cd www/dev/db && wget https://genepanels.ousamg.uiocloud.no/db/gpdb_v1.sqlite )`  
-  In the future, run `make docker_dbcreate_dev` _TBD_
 * run web UI:  
   `make -C ui docker_dev`
 * in new tab, start server to host web UI:  
@@ -55,8 +55,8 @@ _TDB how to build the db file_
 
 ### Update the DB
 
-* run ...
-* copy the db file (`gpdb_v1.sqlite`) to the `db` folder on the server
+* Get the genepanels from the genepanel-store repository.
+* Run `GPSTORE_DIR=... make dbcreate_dev` while pointing it to the corrent directory
 
 ## Server setup
 
