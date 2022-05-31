@@ -1,0 +1,3 @@
+# Gene panel: HBOC-v01.0 -- Date: 2022-05-15
+#chromosome	start	end	description	score	strand	segDup	fracMatch
+17	41276027	41276133	BRCA1__1100__NM_007294.4__exon2	0	-	chr17:41276027-41276133	0.923488

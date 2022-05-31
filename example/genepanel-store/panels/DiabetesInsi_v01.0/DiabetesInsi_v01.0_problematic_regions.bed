@@ -1,0 +1,4 @@
+# Gene panel: DiabetesInsi-v01.0 -- Date: 2022-05-15
+#chromosome	start	end	description	score	strand	segDup	fracMatch
+X	1339107	1339158	AVPR2__897__NM_001146151.3__exon2	0	+	chrX:1339107-1339158	1.000000
+X	1339493	1340424	AVPR2__897__NM_001146151.3__exon3	0	+	chrX:1339493-1340424	1.000000

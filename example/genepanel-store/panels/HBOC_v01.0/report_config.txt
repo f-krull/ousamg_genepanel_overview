@@ -1,0 +1,11 @@
+[DEFAULT]
+# Used in attachment sent to doctor and internal web
+  title = HBOC
+  version = v01.0
+  coverage_threshold=100
+  coverage_description=
+
+[Web publishing - table]
+# The values (not the keys) are printed line by line before the table with genes.
+  legend = [
+       ]

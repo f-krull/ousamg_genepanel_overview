@@ -1,0 +1,7 @@
+# Gene panel: HBOC-v01.0 -- File legend
+  - HBOC_v01.0_phenotypes.tsv:  gene phenotypes/inheritance modes annotation
+  - HBOC_v01.0_coding_regions.bed:  raw coding exonic regions, as read from RefSeq entries [longest reading frame fallback solution]
+  - HBOC_v01.0_coverage_coding_regions.bed:  2,2-bp-extended (up- and downstream) coding exonic regions for coverage calculations [longest reading frame fallback solution]
+  - HBOC_v01.0_problematic_regions.bed:  eventual exonic regions overlapping segmental duplications [longest reading frame fallback solution, fracMatch = duplicated sequence identity]
+  - HBOC_v01.0_target_coding_regions.bed:  20,6-bp-extended (up- and downstream, respectively) coding exonic regions for variant calling [longest reading frame fallback solution]
+  - HBOC_v01.0_genes_transcripts_regions.tsv:  gene transcripts info file [longest reading frame fallback solution]

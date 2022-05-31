@@ -1,0 +1,7 @@
+# Gene panel: DiabetesInsi-v01.0 -- File legend
+  - DiabetesInsi_v01.0_phenotypes.tsv:  gene phenotypes/inheritance modes annotation
+  - DiabetesInsi_v01.0_coding_regions.bed:  raw coding exonic regions, as read from RefSeq entries [longest reading frame fallback solution]
+  - DiabetesInsi_v01.0_coverage_coding_regions.bed:  2,2-bp-extended (up- and downstream) coding exonic regions for coverage calculations [longest reading frame fallback solution]
+  - DiabetesInsi_v01.0_problematic_regions.bed:  eventual exonic regions overlapping segmental duplications [longest reading frame fallback solution, fracMatch = duplicated sequence identity]
+  - DiabetesInsi_v01.0_target_coding_regions.bed:  20,6-bp-extended (up- and downstream, respectively) coding exonic regions for variant calling [longest reading frame fallback solution]
+  - DiabetesInsi_v01.0_genes_transcripts_regions.tsv:  gene transcripts info file [longest reading frame fallback solution]

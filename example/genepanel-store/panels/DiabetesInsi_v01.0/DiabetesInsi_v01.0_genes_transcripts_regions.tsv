@@ -1,0 +1,6 @@
+# Gene panel: DiabetesInsi-v01.0 -- Date: 2022-05-15
+#chromosome	txStart	txEnd	refseq	source	score	strand	geneSymbol	HGNC	OMIM gene entry	geneAlias	inheritance	cdsStart	cdsEnd	exonStarts	exonEnds	metadata
+12	50344519	50352661	NM_000486.6	Custom	0	+	AQP2	634			AD/AR	50344613	50349391	50344519,50347937,50348412,50349181	50344973,50348102,50348493,50352661	{'transcripts_source': 'Custom', 'inheritance_source': 'Custom'}
+20	3063201	3065370	NM_000490.5	Custom	0	-	AVP	894		ADH	AD	3063275	3065320	3063201,3063622,3065200	3063448,3063824,3065370	{'transcripts_source': 'Custom', 'inheritance_source': 'Custom'}
+X	1338695	1341148	NM_001146151.3	Custom	0	+	AVPR2	897		V2R	XR	1339127	1340418	1338695,1338955,1339513	1338753,1339152,1341148	{'transcripts_source': 'Custom', 'inheritance_source': 'Custom'}
+X	153170167	153172620	NM_001146151.3	Custom	0	+	AVPR2	897		V2R	XR	153170599	153171890	153170167,153170427,153170985	153170225,153170624,153172620	{'transcripts_source': 'Custom', 'inheritance_source': 'Custom'}
